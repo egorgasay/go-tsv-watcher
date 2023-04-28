@@ -1,0 +1,6 @@
+{
+  "http": ":80",
+  "directory": "devices.tsv",
+  "storage_type": "sqlite3",
+  "dsn": "dev.db"
+}
