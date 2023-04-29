@@ -14,7 +14,7 @@ type Database interface {
 	LoadFilenames(putter base.Adder) error
 	AddFilename(filename string, err error) error
 
-	AddRelations(filename string, number []int) error
+	AddRelations(filename string, number []string) error
 
 	SaveDevices(devs *devices.Devices) error
 }

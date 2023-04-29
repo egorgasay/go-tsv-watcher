@@ -21,17 +21,24 @@ const (
 
 var queriesSqlite3 = map[Name]Query{
 	AddFilename: "INSERT INTO files (name, error) VALUES (?, ?)",
-	SaveDevices: `INSERT INTO devices (
+	SaveDevices: `INSERT INTO devices (ID,
                      Number, MQTT ,InventoryID, 
                      UnitGUID, MessageID, MessageText,
                      Context  ,MessageClass, Level, 
                      Area, Address , Block, Type, Bit, 
-                     InvertBit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                     InvertBit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 	AddRelation: "INSERT INTO relations (file_name, device_id) VALUES (?, ?)",
 }
 
 var queriesPostgres = map[Name]Query{
 	AddFilename: "INSERT INTO files (name, error) VALUES ($1, $2)",
+	SaveDevices: `INSERT INTO devices (ID,
+                     Number, MQTT ,InventoryID, 
+                     UnitGUID, MessageID, MessageText,
+                     Context  ,MessageClass, Level, 
+                     Area, Address , Block, Type, Bit, 
+                     InvertBit) VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+	AddRelation: "INSERT INTO relations (file_name, device_id) VALUES ($1, $2::uuid)",
 }
 
 // ErrNotFound occurs when query was not found.

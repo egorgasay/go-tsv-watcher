@@ -2,12 +2,14 @@ package devices
 
 import (
 	"github.com/dogenzaka/tsv"
+	"github.com/google/uuid"
 	"log"
 	"os"
 	"sync"
 )
 
 type Device struct {
+	ID           string
 	Number       int    `tsv:"n"`
 	MQTT         string `tsv:"mqtt"`
 	InventoryID  string `tsv:"invid"`
@@ -90,6 +92,8 @@ func (ds *Devices) Fill() error {
 		if err != nil {
 			return err
 		}
+
+		ds.current.ID = uuid.New().String()
 
 		ds.devices = append(ds.devices, *ds.current)
 	}

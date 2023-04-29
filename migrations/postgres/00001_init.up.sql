@@ -1,5 +1,5 @@
 CREATE TABLE devices (
-    ID          TEXT PRIMARY KEY,
+    ID           uuid PRIMARY KEY,
     Number       int,
     MQTT         VARCHAR(255),
     InventoryID  VARCHAR(255),
@@ -22,7 +22,7 @@ CREATE TABLE files (
 );
 CREATE TABLE relations(
     file_name VARCHAR(255),
-    device_id TEXT,
+    device_id uuid,
     FOREIGN KEY(file_name) REFERENCES files(name),
     FOREIGN KEY(device_id) REFERENCES devices(ID)
 )

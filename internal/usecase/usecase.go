@@ -32,7 +32,7 @@ func (u *UseCase) Process(refresh time.Duration, dir string) error {
 	}
 
 	go func() {
-		err := u.fileWatcher.Run()
+		err = u.fileWatcher.Run()
 		if err != nil {
 			panic(err)
 		}
@@ -65,14 +65,14 @@ func (u *UseCase) Process(refresh time.Duration, dir string) error {
 			log.Println("Failed to save devices:", err)
 		}
 
-		var numbersOfDevices = make([]int, 0, 20)
+		var uuids = make([]string, 0, 20)
 
 		gadgets.Iter(func(d devices.Device) (stop bool) {
-			numbersOfDevices = append(numbersOfDevices, d.Number)
+			uuids = append(uuids, d.ID)
 			return false
 		})
 
-		err = u.storage.AddRelations(filename, numbersOfDevices)
+		err = u.storage.AddRelations(filename, uuids)
 		if err != nil {
 			log.Println("Failed to add relations:", err)
 		}

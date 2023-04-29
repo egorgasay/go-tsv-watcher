@@ -13,23 +13,26 @@ type DB struct {
 	*sql.DB
 }
 
+// Close closes the database connection.
 func (db *DB) Close() error {
 	return db.DB.Close()
 }
 
+// Ping checks the database connection.
 func (db *DB) Ping() error {
 	return db.DB.Ping()
 }
 
-func (db *DB) AddFilename(filename string, err error) error {
+// AddFilename adds a filename and error to the database.
+func (db *DB) AddFilename(filename string, errFill error) error {
 	statement, err := queries.GetPreparedStatement(queries.AddFilename)
 	if err != nil {
 		return err
 	}
 
 	var errMsg = ""
-	if err == nil {
-		errMsg = err.Error()
+	if errFill != nil {
+		errMsg = errFill.Error()
 	}
 
 	_, err = statement.Exec(filename, errMsg)
@@ -40,6 +43,7 @@ type Adder interface {
 	AddFile(filename string)
 }
 
+// LoadFilenames loads filenames from the database into the RAM.
 func (db *DB) LoadFilenames(storage Adder) error {
 	rows, err := db.Query("SELECT name FROM files")
 	if err != nil {
@@ -63,10 +67,12 @@ type Iterator[K any, V any] interface {
 	Iter(func(k K, v V) (stop bool))
 }
 
+// Prepare prepares the database for usage.
 func (db *DB) Prepare(vendor string) error {
 	return queries.Prepare(db.DB, vendor)
 }
 
+// SaveDevices saves the devices to the database.
 func (db *DB) SaveDevices(devs *devices.Devices) error {
 	statement, err := queries.GetPreparedStatement(queries.SaveDevices)
 	if err != nil {
@@ -74,7 +80,7 @@ func (db *DB) SaveDevices(devs *devices.Devices) error {
 	}
 
 	save := func(d devices.Device) (stop bool) {
-		_, err := statement.Exec(d.Number, d.MQTT, d.InventoryID, d.UnitGUID,
+		_, err := statement.Exec(d.ID, d.Number, d.MQTT, d.InventoryID, d.UnitGUID,
 			d.MessageID, d.MessageText, d.Context, d.MessageClass,
 			d.Level, d.Area, d.Address, d.Block, d.Type, d.Bit, d.InvertBit)
 		if err != nil {
@@ -89,14 +95,15 @@ func (db *DB) SaveDevices(devs *devices.Devices) error {
 	return nil
 }
 
-func (db *DB) AddRelations(filename string, number []int) error {
+// AddRelations adds relations to the database.
+func (db *DB) AddRelations(filename string, uuids []string) error {
 	statement, err := queries.GetPreparedStatement(queries.AddRelation)
 	if err != nil {
 		return err
 	}
 
-	for _, num := range number {
-		_, err = statement.Exec(filename, num)
+	for _, uniqueID := range uuids {
+		_, err = statement.Exec(filename, uniqueID)
 		if err != nil {
 			return err
 		}

@@ -32,7 +32,7 @@ func New(db *sql.DB, path string) *Postgres {
 	}
 
 	err = m.Up()
-	if !errors.Is(err, migrate.ErrNoChange) {
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		log.Fatal(err)
 	}
 
