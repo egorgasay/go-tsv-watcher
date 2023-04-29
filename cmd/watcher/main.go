@@ -18,7 +18,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	logic := usecase.New(st)
+	logic := usecase.New(st, "out") // TODO: use config
 
 	go func() {
 		err := logic.Process(cfg.Refresh, cfg.Directory)
@@ -32,7 +32,14 @@ func main() {
 
 	<-quit
 
-	err := queries.Close()
+	ev, err := logic.GetEventByNumber("01749246-95f6-57db-b7c3-2ae0e8be6715", 23)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(ev)
+
+	err = queries.Close()
 	if err != nil {
 		log.Println(err)
 	}

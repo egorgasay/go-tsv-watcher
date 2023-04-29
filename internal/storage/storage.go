@@ -17,6 +17,7 @@ type Database interface {
 	AddRelations(filename string, number []string) error
 
 	SaveDevices(devs *devices.Devices) error
+	GetEventByNumber(guid string, number int) (devices.Device, error)
 }
 
 type Storage Database

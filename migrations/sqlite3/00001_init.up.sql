@@ -1,4 +1,4 @@
-CREATE TABLE devices (
+CREATE TABLE events (
     ID          TEXT PRIMARY KEY,
     Number       int,
     MQTT         VARCHAR(255),
@@ -22,7 +22,7 @@ CREATE TABLE files (
 );
 CREATE TABLE relations(
     file_name VARCHAR(255),
-    device_id TEXT,
+    event_id TEXT,
     FOREIGN KEY(file_name) REFERENCES files(name),
-    FOREIGN KEY(device_id) REFERENCES devices(ID)
+    FOREIGN KEY(event_id) REFERENCES events(ID)
 )

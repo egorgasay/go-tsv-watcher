@@ -74,7 +74,7 @@ func (db *DB) Prepare(vendor string) error {
 
 // SaveDevices saves the devices to the database.
 func (db *DB) SaveDevices(devs *devices.Devices) error {
-	statement, err := queries.GetPreparedStatement(queries.SaveDevices)
+	statement, err := queries.GetPreparedStatement(queries.SaveEvent)
 	if err != nil {
 		return err
 	}
@@ -110,4 +110,21 @@ func (db *DB) AddRelations(filename string, uuids []string) error {
 	}
 
 	return nil
+}
+
+func (db *DB) GetEventByNumber(guid string, number int) (devices.Device, error) {
+	statement, err := queries.GetPreparedStatement(queries.GetEvent)
+	if err != nil {
+		return devices.Device{}, err
+	}
+
+	var d devices.Device
+	err = statement.QueryRow(guid, number).Scan(&d.ID, &d.Number, &d.MQTT, &d.InventoryID, &d.UnitGUID,
+		&d.MessageID, &d.MessageText, &d.Context, &d.MessageClass, &d.Level, &d.Area, &d.Address, &d.Block, &d.Type,
+		&d.Bit, &d.InvertBit)
+	if err != nil {
+		return devices.Device{}, err
+	}
+
+	return d, nil
 }
