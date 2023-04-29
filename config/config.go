@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 )
 
 // Flag struct for parsing from env and cmd args.
@@ -25,6 +26,9 @@ type Flag struct {
 	// http(s) server config
 	HTTP  string `json:"http,omitempty"`
 	HTTPS string `json:"https,omitempty"`
+
+	// refresh interval
+	Refresh string `json:"refresh_interval"`
 }
 
 // Config struct for storing config values.
@@ -38,6 +42,8 @@ type Config struct {
 
 	// storage config
 	DBConfig *storage.Config
+	// refresh interval
+	Refresh time.Duration
 }
 
 var f Flag
@@ -59,6 +65,11 @@ func New() *Config {
 		log.Fatalf("can't modify config: %v", err)
 	}
 
+	dur, err := time.ParseDuration(f.Refresh)
+	if err != nil {
+		log.Fatalf("can't parse refresh duration: %v", err)
+	}
+
 	return &Config{
 		HTTP:  f.HTTP,
 		HTTPS: f.HTTPS,
@@ -68,6 +79,7 @@ func New() *Config {
 			DataSourceCred: f.DSN,
 		},
 		Directory: f.Directory,
+		Refresh:   dur,
 	}
 }
 

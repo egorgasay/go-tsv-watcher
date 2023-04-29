@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-type device struct {
+type Device struct {
 	Number       int    `tsv:"n"`
 	MQTT         string `tsv:"mqtt"`
 	InventoryID  string `tsv:"invid"`
@@ -30,8 +30,8 @@ type parser interface {
 }
 
 type Devices struct {
-	current *device
-	devices []device
+	current *Device
+	devices []Device
 	parser  parser
 	file    *os.File
 
@@ -45,10 +45,10 @@ func New(filename string) (*Devices, error) {
 	}
 
 	return &Devices{
-		current: new(device),
+		current: new(Device),
 		file:    f,
 		parser:  nil,
-		devices: make([]device, 0),
+		devices: make([]Device, 0),
 	}, nil
 }
 
@@ -84,9 +84,6 @@ func (ds *Devices) Fill() error {
 	for {
 		eof, err := ds.parser.Next()
 		if eof {
-			for _, d := range ds.devices {
-				log.Println(d)
-			}
 			return nil
 		}
 
@@ -95,5 +92,22 @@ func (ds *Devices) Fill() error {
 		}
 
 		ds.devices = append(ds.devices, *ds.current)
+	}
+}
+
+func (ds *Devices) Print() {
+	for _, d := range ds.devices {
+		log.Println(d.Number)
+	}
+}
+
+func (ds *Devices) Iter(cb func(d Device) (stop bool)) {
+	ds.mu.Lock()
+	defer ds.mu.Unlock()
+
+	for _, d := range ds.devices {
+		if stop := cb(d); stop {
+			return
+		}
 	}
 }

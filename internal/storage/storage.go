@@ -1,30 +1,52 @@
 package storage
 
 import (
-	"github.com/dolthub/swiss"
-	"sync"
+	"database/sql"
+	"go-tsv-watcher/internal/devices"
+	"go-tsv-watcher/internal/storage/base"
+	"go-tsv-watcher/internal/storage/postgres"
+	"go-tsv-watcher/internal/storage/sqlite"
 )
 
-type database interface {
-	AddFilename(filename string) error
-	loadFilenames() (string, error)
+type Database interface {
+	Prepare(filename string) error
 
-	Save() error
+	LoadFilenames(putter base.Adder) error
+	AddFilename(filename string, err error) error
+
+	AddRelations(filename string, number []int) error
+
+	SaveDevices(devs *devices.Devices) error
 }
 
-type Storage struct {
-	db         database
-	mu         sync.RWMutex
-	ramStorage *swiss.Map[string, struct{}]
-}
+type Storage Database
 
 type Config struct {
 	Type           string
 	DataSourceCred string
 }
 
-func New(Config) *Storage {
-	return &Storage{
-		//TODO: implement
+func New(cfg *Config) Storage {
+	var st Storage
+
+	switch cfg.Type {
+	case "postgres":
+		db, err := sql.Open("postgres", cfg.DataSourceCred)
+		if err != nil {
+			panic(err)
+		}
+
+		st = postgres.New(db, "file://migrations/sqlite3")
+	case "sqlite3":
+		db, err := sql.Open("sqlite3", cfg.DataSourceCred)
+		if err != nil {
+			panic(err)
+		}
+
+		st = sqlite.New(db, "file://migrations/sqlite3")
+	default:
+		panic("unknown database type")
 	}
+
+	return st
 }

@@ -1,4 +1,4 @@
-CREATE TABLE Device (
+CREATE TABLE devices (
     Number       int,
     MQTT         VARCHAR(255),
     InventoryID  VARCHAR(255),
@@ -15,6 +15,13 @@ CREATE TABLE Device (
     Bit          INTEGER,
     InvertBit    INTEGER
 );
-CREATE TABLE Files (
-    Name VARCHAR(255) NOT NULL
+CREATE TABLE files (
+    name VARCHAR(255) PRIMARY KEY,
+    error VARCHAR(255)
+);
+CREATE TABLE relations(
+    file_name VARCHAR(255),
+    device_id int,
+    FOREIGN KEY(file_name) REFERENCES files(name),
+    FOREIGN KEY(device_id) REFERENCES device(Number)
 )

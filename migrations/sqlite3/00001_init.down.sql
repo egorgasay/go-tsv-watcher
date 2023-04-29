@@ -1,2 +1,2 @@
-DROP TABLE Device;
-DROP TABLE Files;
+DROP TABLE device;
+DROP TABLE files;
