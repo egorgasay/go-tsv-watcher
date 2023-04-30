@@ -28,8 +28,7 @@ var queriesSqlite3 = map[Name]Query{
                      Context  ,MessageClass, Level, 
                      Area, Address , Block, Type, Bit, 
                      InvertBit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-	AddRelation: "INSERT INTO relations (file_name, event_id) VALUES (?, ?)",
-	GetEvent:    "SELECT * FROM events WHERE UnitGUID = ? LIMIT 1 OFFSET ?",
+	GetEvent: "SELECT * FROM events WHERE UnitGUID = ? LIMIT 1 OFFSET ?",
 }
 
 var queriesPostgres = map[Name]Query{
@@ -40,8 +39,7 @@ var queriesPostgres = map[Name]Query{
                      Context  ,MessageClass, Level, 
                      Area, Address , Block, Type, Bit, 
                      InvertBit) VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
-	AddRelation: "INSERT INTO relations (file_name, event_id) VALUES ($1, $2::uuid)",
-	GetEvent:    "SELECT * FROM events WHERE UnitGUID = $1 LIMIT 1 OFFSET $2",
+	GetEvent: "SELECT * FROM events WHERE UnitGUID = $1 LIMIT 1 OFFSET $2",
 }
 
 // ErrNotFound occurs when query was not found.

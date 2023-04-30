@@ -1,11 +1,14 @@
 package main
 
 import (
+	"github.com/go-chi/chi/v5"
 	"go-tsv-watcher/config"
+	resthandler "go-tsv-watcher/internal/handler/rest"
 	"go-tsv-watcher/internal/storage"
 	"go-tsv-watcher/internal/storage/queries"
 	"go-tsv-watcher/internal/usecase"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,8 +16,8 @@ import (
 
 func main() {
 	cfg := config.New()
-	st := storage.New(cfg.DBConfig)
-	if err := st.Prepare(cfg.DBConfig.Type); err != nil {
+	st, err := storage.New(cfg.DBConfig)
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -27,19 +30,25 @@ func main() {
 		}
 	}()
 
+	h := resthandler.New(logic)
+
+	router := chi.NewRouter()
+	router.Group(h.PublicRoutes)
+
+	// http server
+	go func() {
+		log.Println("HTTP server started on ", cfg.HTTP)
+		if err := http.ListenAndServe(cfg.HTTP, router); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
 
-	ev, err := logic.GetEventByNumber("01749246-95f6-57db-b7c3-2ae0e8be6715", 23)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println(ev)
-
-	err = queries.Close()
+	err := queries.Close()
 	if err != nil {
 		log.Println(err)
 	}

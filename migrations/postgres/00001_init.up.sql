@@ -20,9 +20,3 @@ CREATE TABLE files (
     name VARCHAR(255) PRIMARY KEY,
     error VARCHAR(255)
 );
-CREATE TABLE relations(
-    file_name VARCHAR(255),
-    event_id uuid,
-    FOREIGN KEY(file_name) REFERENCES files(name),
-    FOREIGN KEY(event_id) REFERENCES events(ID)
-)

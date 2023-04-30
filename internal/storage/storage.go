@@ -2,22 +2,20 @@ package storage
 
 import (
 	"database/sql"
-	"go-tsv-watcher/internal/devices"
-	"go-tsv-watcher/internal/storage/base"
+	"errors"
+	"go-tsv-watcher/internal/events"
 	"go-tsv-watcher/internal/storage/postgres"
+	"go-tsv-watcher/internal/storage/queries"
+	"go-tsv-watcher/internal/storage/service"
 	"go-tsv-watcher/internal/storage/sqlite"
 )
 
 type Database interface {
-	Prepare(filename string) error
-
-	LoadFilenames(putter base.Adder) error
+	LoadFilenames(putter service.Adder) error
 	AddFilename(filename string, err error) error
 
-	AddRelations(filename string, number []string) error
-
-	SaveDevices(devs *devices.Devices) error
-	GetEventByNumber(guid string, number int) (devices.Device, error)
+	SaveEvents(evs *events.Events) error
+	GetEventByNumber(guid string, number int) (events.Event, error) // TODO: ADD CONTEXT
 }
 
 type Storage Database
@@ -27,27 +25,33 @@ type Config struct {
 	DataSourceCred string
 }
 
-func New(cfg *Config) Storage {
+func New(cfg *Config) (Storage, error) {
 	var st Storage
+	var err error
+	var db *sql.DB
 
 	switch cfg.Type {
 	case "postgres":
-		db, err := sql.Open("postgres", cfg.DataSourceCred)
+		db, err = sql.Open("postgres", cfg.DataSourceCred)
 		if err != nil {
 			panic(err)
 		}
 
 		st = postgres.New(db, "file://migrations/sqlite3")
 	case "sqlite3":
-		db, err := sql.Open("sqlite3", cfg.DataSourceCred)
+		db, err = sql.Open("sqlite3", cfg.DataSourceCred)
 		if err != nil {
 			panic(err)
 		}
 
 		st = sqlite.New(db, "file://migrations/sqlite3")
 	default:
-		panic("unknown database type")
+		return nil, errors.New("unknown database type")
 	}
 
-	return st
+	if err = queries.Prepare(db, cfg.Type); err != nil {
+		return nil, err
+	}
+
+	return st, nil
 }

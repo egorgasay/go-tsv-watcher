@@ -1,4 +1,4 @@
-package devices
+package events
 
 import (
 	"github.com/dogenzaka/tsv"
@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-type Device struct {
+type Event struct {
 	ID           string
 	Number       int    `tsv:"n"`
 	MQTT         string `tsv:"mqtt"`
@@ -31,32 +31,32 @@ type parser interface {
 	Next() (bool, error)
 }
 
-type Devices struct {
-	current *Device
-	devices []Device
+type Events struct {
+	current *Event
+	devices []Event
 	parser  parser
 	file    *os.File
 
 	mu sync.Mutex
 }
 
-func New(filename string) (*Devices, error) {
+func New(filename string) (*Events, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Devices{
-		current: new(Device),
+	return &Events{
+		current: new(Event),
 		file:    f,
 		parser:  nil,
-		devices: make([]Device, 0),
+		devices: make([]Event, 0),
 	}, nil
 }
 
-func (ds *Devices) prepare() error {
+func (es *Events) prepare() error {
 	var err error
-	ds.parser, err = ds.newParser()
+	es.parser, err = es.newParser()
 	if err != nil {
 		return err
 	}
@@ -64,27 +64,27 @@ func (ds *Devices) prepare() error {
 	return nil
 }
 
-func (ds *Devices) newParser() (parser, error) {
-	return tsv.NewParser(ds.file, ds.current)
+func (es *Events) newParser() (parser, error) {
+	return tsv.NewParser(es.file, es.current)
 }
 
-func (ds *Devices) closeDevices() error {
-	return ds.file.Close()
+func (es *Events) closeDevices() error {
+	return es.file.Close()
 }
 
-func (ds *Devices) Fill() error {
-	ds.mu.Lock()
-	defer ds.mu.Unlock()
+func (es *Events) Fill() error {
+	es.mu.Lock()
+	defer es.mu.Unlock()
 
-	err := ds.prepare()
+	err := es.prepare()
 	if err != nil {
 		return err
 	}
 
-	defer ds.closeDevices()
+	defer es.closeDevices()
 
 	for {
-		eof, err := ds.parser.Next()
+		eof, err := es.parser.Next()
 		if eof {
 			return nil
 		}
@@ -93,23 +93,23 @@ func (ds *Devices) Fill() error {
 			return err
 		}
 
-		ds.current.ID = uuid.New().String()
+		es.current.ID = uuid.New().String()
 
-		ds.devices = append(ds.devices, *ds.current)
+		es.devices = append(es.devices, *es.current)
 	}
 }
 
-func (ds *Devices) Print() {
-	for _, d := range ds.devices {
+func (es *Events) Print() {
+	for _, d := range es.devices {
 		log.Println(d.Number)
 	}
 }
 
-func (ds *Devices) Iter(cb func(d Device) (stop bool)) {
-	ds.mu.Lock()
-	defer ds.mu.Unlock()
+func (es *Events) Iter(cb func(d Event) (stop bool)) {
+	es.mu.Lock()
+	defer es.mu.Unlock()
 
-	for _, d := range ds.devices {
+	for _, d := range es.devices {
 		if stop := cb(d); stop {
 			return
 		}

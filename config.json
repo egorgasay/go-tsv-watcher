@@ -1,7 +1,0 @@
-{
-  "http": ":80",
-  "directory": "test_dir",
-  "storage_type": "postgres",
-  "dsn": "port=5433 user=postgres password=xxXX1234 dbname=tsv sslmode=disable",
-  "refresh_interval": "1s"
-}

@@ -3,7 +3,7 @@ package usecase
 import (
 	"fmt"
 	"github.com/signintech/gopdf"
-	"go-tsv-watcher/internal/devices"
+	"go-tsv-watcher/internal/events"
 	"go-tsv-watcher/internal/storage"
 	"go-tsv-watcher/internal/watcher"
 	"log"
@@ -46,7 +46,7 @@ func (u *UseCase) Process(refresh time.Duration, dir string) error {
 		fmt.Println("Waiting for new file...")
 		filename := <-files
 		fmt.Println("New file:", filename)
-		gadgets, err := devices.New(dir + "/" + filename)
+		gadgets, err := events.New(dir + "/" + filename)
 		if err != nil {
 			return err
 		}
@@ -64,21 +64,9 @@ func (u *UseCase) Process(refresh time.Duration, dir string) error {
 			gadgets.Print()
 		}
 
-		err = u.storage.SaveDevices(gadgets)
+		err = u.storage.SaveEvents(gadgets)
 		if err != nil {
 			log.Println("Failed to save devices:", err)
-		}
-
-		var uuids = make([]string, 0, 20)
-
-		gadgets.Iter(func(d devices.Device) (stop bool) {
-			uuids = append(uuids, d.ID)
-			return false
-		})
-
-		err = u.storage.AddRelations(filename, uuids)
-		if err != nil {
-			log.Println("Failed to add relations:", err)
 		}
 
 		err = u.savePDF(gadgets)
@@ -88,9 +76,9 @@ func (u *UseCase) Process(refresh time.Duration, dir string) error {
 	}
 }
 
-func (u *UseCase) savePDF(devs *devices.Devices) error {
-	var devicesGroups = make(map[string][]devices.Device, 20)
-	devs.Iter(func(d devices.Device) (stop bool) {
+func (u *UseCase) savePDF(devs *events.Events) error {
+	var devicesGroups = make(map[string][]events.Event, 20)
+	devs.Iter(func(d events.Event) (stop bool) {
 		devicesGroups[d.UnitGUID] = append(devicesGroups[d.UnitGUID], d)
 		return false
 	})
@@ -105,12 +93,12 @@ func (u *UseCase) savePDF(devs *devices.Devices) error {
 	return nil
 }
 
-func (u *UseCase) process(group []devices.Device, unitGUID string) error {
+func (u *UseCase) process(group []events.Event, unitGUID string) error {
 	pdf := gopdf.GoPdf{}
 	defer pdf.Close()
 
 	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
-	err := pdf.AddTTFFont("LiberationSerif-Regular", "./LiberationSerif-Regular.ttf")
+	err := pdf.AddTTFFont("LiberationSerif-Regular", "./resources/LiberationSerif-Regular.ttf")
 	if err != nil {
 		log.Print(err.Error())
 		return err
@@ -155,6 +143,6 @@ func (u *UseCase) process(group []devices.Device, unitGUID string) error {
 	return nil
 }
 
-func (u *UseCase) GetEventByNumber(unitGUID string, number int) (devices.Device, error) {
+func (u *UseCase) GetEventByNumber(unitGUID string, number int) (events.Event, error) {
 	return u.storage.GetEventByNumber(unitGUID, number-1)
 }

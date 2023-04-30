@@ -3,7 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"github.com/pkg/errors"
-	"go-tsv-watcher/internal/storage/base"
+	"go-tsv-watcher/internal/storage/sqllike"
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -14,7 +14,7 @@ import (
 )
 
 type Sqlite3 struct {
-	base.DB
+	sqllike.DB
 }
 
 // New Sqlite3 constructor.
@@ -38,5 +38,5 @@ func New(db *sql.DB, path string) *Sqlite3 {
 		log.Fatal(err)
 	}
 
-	return &Sqlite3{DB: base.DB{DB: db}}
+	return &Sqlite3{DB: sqllike.DB{DB: db}}
 }

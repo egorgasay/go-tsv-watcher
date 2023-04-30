@@ -8,11 +8,11 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/jackc/pgx"
-	"go-tsv-watcher/internal/storage/base"
+	"go-tsv-watcher/internal/storage/sqllike"
 )
 
 type Postgres struct {
-	base.DB
+	sqllike.DB
 }
 
 // New Postgres constructor.
@@ -36,5 +36,5 @@ func New(db *sql.DB, path string) *Postgres {
 		log.Fatal(err)
 	}
 
-	return &Postgres{DB: base.DB{DB: db}}
+	return &Postgres{DB: sqllike.DB{DB: db}}
 }

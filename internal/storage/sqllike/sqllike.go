@@ -1,14 +1,15 @@
-package base
+package sqllike
 
 import (
 	"database/sql"
 	"github.com/pkg/errors"
-	"go-tsv-watcher/internal/devices"
+	"go-tsv-watcher/internal/events"
 	"go-tsv-watcher/internal/storage/queries"
+	"go-tsv-watcher/internal/storage/service"
 	"log"
 )
 
-// DB is a basic implementation of the storage.Repository interface.
+// DB is a basic implementation of the storage.Database interface.
 type DB struct {
 	*sql.DB
 }
@@ -39,12 +40,8 @@ func (db *DB) AddFilename(filename string, errFill error) error {
 	return err
 }
 
-type Adder interface {
-	AddFile(filename string)
-}
-
 // LoadFilenames loads filenames from the database into the RAM.
-func (db *DB) LoadFilenames(storage Adder) error {
+func (db *DB) LoadFilenames(storage service.Adder) error {
 	rows, err := db.Query("SELECT name FROM files")
 	if err != nil {
 		return err
@@ -67,19 +64,14 @@ type Iterator[K any, V any] interface {
 	Iter(func(k K, v V) (stop bool))
 }
 
-// Prepare prepares the database for usage.
-func (db *DB) Prepare(vendor string) error {
-	return queries.Prepare(db.DB, vendor)
-}
-
-// SaveDevices saves the devices to the database.
-func (db *DB) SaveDevices(devs *devices.Devices) error {
+// SaveEvents saves the devices to the database.
+func (db *DB) SaveEvents(evs *events.Events) error {
 	statement, err := queries.GetPreparedStatement(queries.SaveEvent)
 	if err != nil {
 		return err
 	}
 
-	save := func(d devices.Device) (stop bool) {
+	save := func(d events.Event) (stop bool) {
 		_, err := statement.Exec(d.ID, d.Number, d.MQTT, d.InventoryID, d.UnitGUID,
 			d.MessageID, d.MessageText, d.Context, d.MessageClass,
 			d.Level, d.Area, d.Address, d.Block, d.Type, d.Bit, d.InvertBit)
@@ -90,40 +82,23 @@ func (db *DB) SaveDevices(devs *devices.Devices) error {
 		return false
 	}
 
-	devs.Iter(save)
+	evs.Iter(save)
 
 	return nil
 }
 
-// AddRelations adds relations to the database.
-func (db *DB) AddRelations(filename string, uuids []string) error {
-	statement, err := queries.GetPreparedStatement(queries.AddRelation)
-	if err != nil {
-		return err
-	}
-
-	for _, uniqueID := range uuids {
-		_, err = statement.Exec(filename, uniqueID)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (db *DB) GetEventByNumber(guid string, number int) (devices.Device, error) {
+func (db *DB) GetEventByNumber(guid string, number int) (events.Event, error) {
 	statement, err := queries.GetPreparedStatement(queries.GetEvent)
 	if err != nil {
-		return devices.Device{}, err
+		return events.Event{}, err
 	}
 
-	var d devices.Device
+	var d events.Event
 	err = statement.QueryRow(guid, number).Scan(&d.ID, &d.Number, &d.MQTT, &d.InventoryID, &d.UnitGUID,
 		&d.MessageID, &d.MessageText, &d.Context, &d.MessageClass, &d.Level, &d.Area, &d.Address, &d.Block, &d.Type,
 		&d.Bit, &d.InvertBit)
 	if err != nil {
-		return devices.Device{}, err
+		return events.Event{}, err
 	}
 
 	return d, nil
