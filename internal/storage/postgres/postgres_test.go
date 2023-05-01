@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 	defer cleanup(db)
 	defer db.Close()
 
-	st = postgres.New(db, "file://..//..//..//migrations/sqlite3")
+	st = postgres.New(db, "file://..//..//..//migrations/postgres")
 
 	err = queries.Prepare(db, "sqlite3")
 	if err != nil {
