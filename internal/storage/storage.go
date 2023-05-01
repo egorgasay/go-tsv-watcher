@@ -16,7 +16,7 @@ type Database interface {
 	LoadFilenames(putter service.Adder) error
 	AddFilename(filename string, err error) error
 
-	SaveEvents(evs *events.Events) error
+	SaveEvents(evs service.IEvents) error
 	GetEventByNumber(guid string, number int) (events.Event, error) // TODO: ADD CONTEXT
 }
 

@@ -66,7 +66,7 @@ func (i *Itisadb) AddFilename(filename string, err error) error {
 	return nil
 }
 
-func (i *Itisadb) SaveEvents(evs *events.Events) error {
+func (i *Itisadb) SaveEvents(evs service.IEvents) error {
 	save := func(e events.Event) (stop bool) {
 		guidIndex, err := i.client.Index(context.Background(), e.UnitGUID)
 		if err != nil {
