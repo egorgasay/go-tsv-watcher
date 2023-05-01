@@ -3,7 +3,6 @@ package watcher
 import (
 	"github.com/dolthub/swiss"
 	"os"
-	"sync"
 	"time"
 )
 
@@ -11,7 +10,6 @@ import (
 type Watcher struct {
 	refreshInterval time.Duration
 	dir             string
-	mu              sync.RWMutex
 	processed       *swiss.Map[string, struct{}]
 	files           chan string
 }
@@ -27,8 +25,6 @@ func New(refreshInterval time.Duration, dir string, files chan string) *Watcher 
 }
 
 func (w *Watcher) AddFile(filename string) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	w.processed.Put(filename, struct{}{})
 }
 
@@ -40,7 +36,6 @@ func (w *Watcher) Run() error {
 	for {
 		select {
 		case <-ticker.C:
-			w.mu.Lock()
 			dir, err := os.Open(w.dir)
 			if err != nil {
 				return err
@@ -67,7 +62,6 @@ func (w *Watcher) Run() error {
 				w.processed.Put(fi.Name(), struct{}{})
 			}
 			dir.Close()
-			w.mu.Unlock()
 		}
 	}
 }

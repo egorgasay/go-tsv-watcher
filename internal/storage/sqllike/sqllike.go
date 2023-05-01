@@ -60,10 +60,6 @@ func (db *DB) LoadFilenames(storage service.Adder) error {
 	return nil
 }
 
-type Iterator[K any, V any] interface {
-	Iter(func(k K, v V) (stop bool))
-}
-
 // SaveEvents saves the devices to the database.
 func (db *DB) SaveEvents(evs *events.Events) error {
 	statement, err := queries.GetPreparedStatement(queries.SaveEvent)
@@ -88,6 +84,7 @@ func (db *DB) SaveEvents(evs *events.Events) error {
 }
 
 func (db *DB) GetEventByNumber(guid string, number int) (events.Event, error) {
+	number--
 	statement, err := queries.GetPreparedStatement(queries.GetEvent)
 	if err != nil {
 		return events.Event{}, err

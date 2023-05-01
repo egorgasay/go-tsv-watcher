@@ -3,7 +3,9 @@ package storage
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"go-tsv-watcher/internal/events"
+	"go-tsv-watcher/internal/storage/itisadb"
 	"go-tsv-watcher/internal/storage/postgres"
 	"go-tsv-watcher/internal/storage/queries"
 	"go-tsv-watcher/internal/storage/service"
@@ -45,6 +47,13 @@ func New(cfg *Config) (Storage, error) {
 		}
 
 		st = sqlite.New(db, "file://migrations/sqlite3")
+	case "itisadb":
+		nosql, err := itisadb.New(cfg.DataSourceCred)
+		if err != nil {
+			return nil, fmt.Errorf("failed to connect to itisadb: %w", err)
+		}
+
+		return nosql, nil
 	default:
 		return nil, errors.New("unknown database type")
 	}

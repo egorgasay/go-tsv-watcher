@@ -144,5 +144,5 @@ func (u *UseCase) process(group []events.Event, unitGUID string) error {
 }
 
 func (u *UseCase) GetEventByNumber(unitGUID string, number int) (events.Event, error) {
-	return u.storage.GetEventByNumber(unitGUID, number-1)
+	return u.storage.GetEventByNumber(unitGUID, number)
 }

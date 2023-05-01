@@ -48,7 +48,7 @@ func main() {
 
 	<-quit
 
-	err := queries.Close()
+	err = queries.Close()
 	if err != nil {
 		log.Println(err)
 	}

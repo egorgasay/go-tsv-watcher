@@ -22,7 +22,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dolthub/maphash v0.0.0-20221220182448-74e1e1ea1577 // indirect
 	github.com/egorgasay/bettererrors v0.0.3 // indirect
-	github.com/egorgasay/itisadb-go-sdk v0.2.1 // indirect
+	github.com/egorgasay/itisadb-go-sdk v0.4.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

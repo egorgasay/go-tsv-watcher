@@ -2,6 +2,7 @@ package itisadb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/egorgasay/itisadb-go-sdk"
 	"go-tsv-watcher/internal/events"
@@ -15,6 +16,8 @@ type Itisadb struct {
 	client *itisadb.Client
 }
 
+var ErrEventNotFound = errors.New("event not found")
+
 func New(creds string) (*Itisadb, error) {
 	client, err := itisadb.New(creds)
 	if err != nil {
@@ -26,23 +29,19 @@ func New(creds string) (*Itisadb, error) {
 	}, nil
 }
 
-func (i *Itisadb) Prepare(vendor string) error {
-	return nil
-}
-
 func (i *Itisadb) LoadFilenames(adder service.Adder) error {
 	files, err := i.client.Index(context.Background(), "files")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get files index: %w", err)
 	}
 
 	filesMap, err := files.GetIndex(context.Background())
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get index: %w", err)
 	}
 
-	for _, v := range filesMap {
-		adder.AddFile(v)
+	for name := range filesMap {
+		adder.AddFile(name)
 	}
 
 	return nil
@@ -59,7 +58,7 @@ func (i *Itisadb) AddFilename(filename string, err error) error {
 		errMsg = err.Error()
 	}
 
-	_, err = files.Set(context.Background(), filename, errMsg, false)
+	err = files.Set(context.Background(), filename, errMsg, false)
 	if err != nil {
 		return err
 	}
@@ -69,6 +68,24 @@ func (i *Itisadb) AddFilename(filename string, err error) error {
 
 func (i *Itisadb) SaveEvents(evs *events.Events) error {
 	save := func(e events.Event) (stop bool) {
+		guidIndex, err := i.client.Index(context.Background(), e.UnitGUID)
+		if err != nil {
+			log.Printf("failed to create or get guid index: %v", err)
+			return true
+		}
+
+		num, err := guidIndex.Size(context.Background()) // TODO: GET CONTEXT
+		if err != nil {
+			log.Printf("failed to get size: %v", err)
+			return true
+		}
+
+		numIndex, err := guidIndex.Index(context.Background(), fmt.Sprintf("%d", num+1))
+		if err != nil {
+			log.Printf("failed to create or get index: %v", err)
+			return true
+		}
+
 		ev := reflect.ValueOf(e)
 		for j := 0; j < ev.NumField(); j++ {
 			// get field name
@@ -77,12 +94,12 @@ func (i *Itisadb) SaveEvents(evs *events.Events) error {
 			value := ev.Field(j)
 			switch field.Type.Kind() {
 			case reflect.String:
-				err := i.client.SetOne(context.Background(), field.Name, value.String(), false)
+				err = numIndex.Set(context.Background(), field.Name, value.String(), false)
 				if err != nil {
 					log.Printf("failed to save %s: %s", field.Name, err)
 				}
 			case reflect.Int:
-				err := i.client.SetOne(context.Background(), field.Name, fmt.Sprintf("%d", value.Int()), false)
+				err = numIndex.Set(context.Background(), field.Name, fmt.Sprintf("%d", value.Int()), false)
 				if err != nil {
 					log.Printf("failed to save %s: %s", field.Name, err)
 				}
@@ -112,24 +129,28 @@ func (i *Itisadb) GetEventByNumber(guid string, number int) (events.Event, error
 		return events.Event{}, err
 	}
 
+	if len(numMap) == 0 {
+		return events.Event{}, ErrEventNotFound
+	}
+
 	var event events.Event
-	ev := reflect.ValueOf(event)
+	ev := reflect.ValueOf(&event).Elem()
 
 	// reflect over event
 	for j := 0; j < ev.NumField(); j++ {
 		// get field name
-		field := ev.Type().Field(j)
-		// get field value
-		value := ev.Field(j)
-		switch field.Type.Kind() {
+		field := ev.Field(j)
+		tField := ev.Type().Field(j)
+
+		switch field.Type().Kind() {
 		case reflect.String:
-			value.SetString(numMap[field.Name])
+			field.SetString(numMap[tField.Name])
 		case reflect.Int:
-			num, err := strconv.Atoi(numMap[field.Name])
+			num, err := strconv.Atoi(numMap[tField.Name])
 			if err != nil {
 				return events.Event{}, err
 			}
-			value.SetInt(int64(num))
+			field.SetInt(int64(num))
 		}
 	}
 
