@@ -1,28 +1,43 @@
-package sqlite_test
+package postgres_test
 
 import (
+	"context"
 	"database/sql"
 	"errors"
+	"github.com/egorgasay/dockerdb/v2"
 	"go-tsv-watcher/internal/events"
+	"go-tsv-watcher/internal/storage/postgres"
 	"go-tsv-watcher/internal/storage/queries"
-	"go-tsv-watcher/internal/storage/sqlite"
 	"log"
-	"os"
 	"testing"
 )
 
-var st *sqlite.Sqlite3
+var st *postgres.Postgres
 
 func TestMain(m *testing.M) {
-	dbName := "test.db"
-	db, err := sql.Open("sqlite3", dbName)
+	cfg := dockerdb.CustomDB{
+		DB: dockerdb.DB{
+			Name:     "admin",
+			User:     "admin",
+			Password: "XXXXX",
+		},
+		Port:   "1234",
+		Vendor: dockerdb.Postgres15,
+	}
+
+	ddb, err := dockerdb.New(context.Background(), cfg)
+	if err != nil {
+		log.Fatalf("can't create db: %v", err)
+	}
+
+	db, err := sql.Open("sqlite3", ddb.ConnString)
 	if err != nil {
 		log.Fatalf("can't opening the db: %v", err)
 	}
-	defer cleanup(dbName)
+	defer cleanup(db)
 	defer db.Close()
 
-	st = sqlite.New(db, "file://..//..//..//migrations/sqlite3")
+	st = postgres.New(db, "file://..//..//..//migrations/sqlite3")
 
 	err = queries.Prepare(db, "sqlite3")
 	if err != nil {
@@ -33,9 +48,14 @@ func TestMain(m *testing.M) {
 
 }
 
-func cleanup(filename string) {
-	if err := os.Remove(filename); err != nil {
-		log.Fatalf("can't remove the db: %v", err)
+func cleanup(db *sql.DB) {
+	_, err := db.Exec("DROP TABLE IF EXISTS events")
+	if err != nil {
+		log.Fatalf("error dropping table: %v", err)
+	}
+	_, err = db.Exec("DROP TABLE IF EXISTS files")
+	if err != nil {
+		log.Fatalf("error dropping table: %v", err)
 	}
 }
 
@@ -235,7 +255,7 @@ func TestDB_SaveEvents(t *testing.T) {
 			}
 			for _, ev := range tt.evs.events {
 				var id string
-				if err := st.DB.QueryRow("SELECT ID FROM events WHERE UnitGUID = ?", ev.UnitGUID).Scan(&id); err != nil {
+				if err := st.DB.QueryRow("SELECT ID FROM events WHERE UnitGUID = $1", ev.UnitGUID).Scan(&id); err != nil {
 					t.Errorf("error getting id: %v", err)
 				}
 				if id != ev.ID {

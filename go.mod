@@ -5,6 +5,9 @@ go 1.19
 require (
 	github.com/dogenzaka/tsv v0.0.0-20150215104501-8e02e611b1fb
 	github.com/dolthub/swiss v0.1.0
+	github.com/egorgasay/bettererrors v0.0.3
+	github.com/egorgasay/dockerdb/v2 v2.0.2
+	github.com/egorgasay/itisadb-go-sdk v0.4.0
 	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-chi/httplog v0.3.0
@@ -19,18 +22,24 @@ require (
 )
 
 require (
+	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/docker/distribution v2.8.1+incompatible // indirect
+	github.com/docker/docker v23.0.0+incompatible // indirect
+	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dolthub/maphash v0.0.0-20221220182448-74e1e1ea1577 // indirect
-	github.com/egorgasay/bettererrors v0.0.3 // indirect
-	github.com/egorgasay/itisadb-go-sdk v0.4.0 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/lib/pq v1.10.0 // indirect
+	github.com/lib/pq v1.10.7 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/opencontainers/go-digest v1.0.0 // indirect
+	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/phpdave11/gofpdi v1.0.14-0.20211212211723-1f10f9844311 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect

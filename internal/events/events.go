@@ -33,7 +33,7 @@ type parser interface {
 
 type Events struct {
 	current *Event
-	devices []Event
+	events  []Event
 	parser  parser
 	file    *os.File
 
@@ -50,7 +50,7 @@ func New(filename string) (*Events, error) {
 		current: new(Event),
 		file:    f,
 		parser:  nil,
-		devices: make([]Event, 0),
+		events:  make([]Event, 0),
 	}, nil
 }
 
@@ -95,12 +95,12 @@ func (es *Events) Fill() error {
 
 		es.current.ID = uuid.New().String()
 
-		es.devices = append(es.devices, *es.current)
+		es.events = append(es.events, *es.current)
 	}
 }
 
 func (es *Events) Print() {
-	for _, d := range es.devices {
+	for _, d := range es.events {
 		log.Println(d.Number)
 	}
 }
@@ -109,7 +109,7 @@ func (es *Events) Iter(cb func(d Event) (stop bool)) {
 	es.mu.Lock()
 	defer es.mu.Unlock()
 
-	for _, d := range es.devices {
+	for _, d := range es.events {
 		if stop := cb(d); stop {
 			return
 		}

@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-// DB is a basic implementation of the storage.Database interface.
+// DB is a abstract implementation of the storage.Database interface for sql like databases.
 type DB struct {
 	*sql.DB
 }
@@ -61,7 +61,7 @@ func (db *DB) LoadFilenames(storage service.Adder) error {
 }
 
 // SaveEvents saves the devices to the database.
-func (db *DB) SaveEvents(evs *events.Events) error {
+func (db *DB) SaveEvents(evs service.IEvents) error {
 	statement, err := queries.GetPreparedStatement(queries.SaveEvent)
 	if err != nil {
 		return err
@@ -83,6 +83,7 @@ func (db *DB) SaveEvents(evs *events.Events) error {
 	return nil
 }
 
+// GetEventByNumber returns the event by number.
 func (db *DB) GetEventByNumber(guid string, number int) (events.Event, error) {
 	number--
 	statement, err := queries.GetPreparedStatement(queries.GetEvent)
