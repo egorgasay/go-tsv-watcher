@@ -176,7 +176,9 @@ func TestLoadFilenames(t *testing.T) {
 	}
 
 	a := &addStub{}
+  
 	err = st.LoadFilenames(context.Background(), a)
+
 	if err != nil {
 		t.Fatalf("error loading filenames: %v", err)
 	}
