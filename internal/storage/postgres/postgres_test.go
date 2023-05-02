@@ -25,6 +25,11 @@ func TestMain(m *testing.M) {
 		Vendor: dockerdb.Postgres15,
 	}
 
+	err := dockerdb.Pull(context.Background(), dockerdb.Postgres15)
+	if err != nil {
+		return
+	}
+
 	ddb, err := dockerdb.New(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("can't create db: %v", err)
