@@ -16,7 +16,6 @@ type Name int
 const (
 	AddFilename = iota
 	SaveEvent
-	AddRelation
 	GetEvent
 )
 
@@ -32,7 +31,7 @@ var queriesSqlite3 = map[Name]Query{
 }
 
 var queriesPostgres = map[Name]Query{
-	AddFilename: "INSERT INTO files (name, error) VALUES ($1, $2)",
+	AddFilename: "INSERT INTO files (name,error) VALUES ($1,$2)",
 	SaveEvent: `INSERT INTO events (ID,
                      Number, MQTT ,InventoryID, 
                      UnitGUID, MessageID, MessageText,
