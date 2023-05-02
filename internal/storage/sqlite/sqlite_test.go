@@ -277,12 +277,12 @@ func TestDB_GetEventByNumber(t *testing.T) {
 			name: "ok #1",
 			args: args{
 				ctx:    context.Background(),
-				guid:   "3992bf73-76af-438b-9e75-085348da7f6a",
+				guid:   "3992bf73-76af-438b-9e75-085348da7f61",
 				number: 1,
 			},
 
 			want: events.Event{
-				UnitGUID:    "3992bf73-76af-438b-9e75-085348da7f6a",
+				UnitGUID:    "3992bf73-76af-438b-9e75-085348da7f61",
 				MessageText: "Test2",
 			},
 
@@ -293,12 +293,12 @@ func TestDB_GetEventByNumber(t *testing.T) {
 			name: "ok #2",
 			args: args{
 				ctx:    context.Background(),
-				guid:   "3992bf73-76af-438b-9e75-085348da7f6a",
+				guid:   "3992bf73-76af-438b-9e75-085348da7f61",
 				number: 2,
 			},
 
 			want: events.Event{
-				UnitGUID:    "3992bf73-76af-438b-9e75-085348da7f6a",
+				UnitGUID:    "3992bf73-76af-438b-9e75-085348da7f61",
 				MessageText: "Test2",
 			},
 
@@ -308,7 +308,7 @@ func TestDB_GetEventByNumber(t *testing.T) {
 			name: "not found",
 			args: args{
 				ctx:    context.Background(),
-				guid:   "3992bf73-76af-438b-9e75-085348da7f6a",
+				guid:   "3992bf73-76af-438b-9e75-085348da7f61",
 				number: 3,
 			},
 			wantErr: true,
