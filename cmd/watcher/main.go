@@ -16,7 +16,11 @@ import (
 )
 
 func main() {
-	cfg := config.New()
+	cfg, err := config.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	st, err := storage.New(cfg.DBConfig)
 	if err != nil {
 		log.Fatal(err)
@@ -25,7 +29,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	logic := usecase.New(st, "out") // TODO: use config
+	logic := usecase.New(st, cfg.DirectoryOut)
 
 	go func() {
 		err := logic.Process(ctx, cfg.Refresh, cfg.Directory)

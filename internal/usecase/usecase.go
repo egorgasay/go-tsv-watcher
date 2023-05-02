@@ -39,7 +39,7 @@ func (u *UseCase) Process(ctx context.Context, refresh time.Duration, dir string
 	go func() {
 		err = u.fileWatcher.Run()
 		if err != nil {
-			panic(err)
+			log.Fatalln(err)
 		}
 	}()
 
@@ -102,13 +102,13 @@ func (u *UseCase) process(group []events.Event, unitGUID string) error {
 	err := pdf.AddTTFFont("LiberationSerif-Regular", "./resources/LiberationSerif-Regular.ttf")
 	if err != nil {
 		log.Print(err.Error())
-		return err
+		return fmt.Errorf("failed to add font: %w", err)
 	}
 
 	err = pdf.SetFont("LiberationSerif-Regular", "", 14)
 	if err != nil {
 		log.Print(err.Error())
-		return err
+		return fmt.Errorf("failed to set font: %w", err)
 	}
 
 	for _, d := range group {
@@ -128,7 +128,7 @@ func (u *UseCase) process(group []events.Event, unitGUID string) error {
 			}
 			if err != nil {
 				log.Println("Failed to add text:", err)
-				return err
+				return fmt.Errorf("failed to add text: %w", err)
 			}
 			pdf.Br(20)
 		}
@@ -138,7 +138,7 @@ func (u *UseCase) process(group []events.Event, unitGUID string) error {
 	err = pdf.WritePdf(finalName)
 	if err != nil {
 		log.Println("Failed to save PDF:", err)
-		return err
+		return fmt.Errorf("failed to save PDF: %w", err)
 	}
 
 	return nil

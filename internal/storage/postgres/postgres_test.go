@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/docker/distribution/uuid"
 	"github.com/egorgasay/dockerdb/v2"
 	"go-tsv-watcher/internal/events"
 	"go-tsv-watcher/internal/storage/postgres"
@@ -274,6 +275,88 @@ func TestDB_SaveEvents(t *testing.T) {
 				if id != ev.ID {
 					t.Errorf("unexpected id: %s want %s", id, ev.ID)
 				}
+			}
+		})
+	}
+}
+
+func TestDB_GetEventByNumber(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		guid   string
+		number int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    events.Event
+		wantErr bool
+	}{
+		{
+			name: "ok #1",
+			args: args{
+				ctx:    context.Background(),
+				guid:   "3992bf73-76af-438b-9e75-085348da7f6a",
+				number: 1,
+			},
+
+			want: events.Event{
+				UnitGUID:    "3992bf73-76af-438b-9e75-085348da7f6a",
+				MessageText: "Test2",
+			},
+
+			wantErr: false,
+		},
+
+		{
+			name: "ok #2",
+			args: args{
+				ctx:    context.Background(),
+				guid:   "3992bf73-76af-438b-9e75-085348da7f6a",
+				number: 2,
+			},
+
+			want: events.Event{
+				UnitGUID:    "3992bf73-76af-438b-9e75-085348da7f6a",
+				MessageText: "Test2",
+			},
+
+			wantErr: false,
+		},
+		{
+			name: "not found",
+			args: args{
+				ctx:    context.Background(),
+				guid:   "3992bf73-76af-438b-9e75-085348da7f6a",
+				number: 3,
+			},
+			wantErr: true,
+		},
+	}
+
+	query := `
+INSERT INTO events (
+                    ID, UnitGUID, MessageText, Number, Level, Bit, 
+                    InvertBit, MQTT, InventoryID, MessageID, MessageClass, 
+                    Context, Area, Address, Block, Type) 
+VALUES ($1, $2, $3, 0, 0, 0, 0, '', '', '', '', '','', '', false, '')`
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := st.DB.Exec(query, uuid.Generate().String(), tt.want.UnitGUID, tt.want.MessageText)
+			if err != nil {
+				t.Fatalf("error adding mock event: %v", err)
+			}
+
+			got, err := st.GetEventByNumber(tt.args.ctx, tt.args.guid, tt.args.number)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetEventByNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got.UnitGUID != tt.want.UnitGUID {
+				t.Errorf("GetEventByNumber() got = %v, want %v", got, tt.want)
+			} else if got.MessageText != tt.want.MessageText {
+				t.Errorf("GetEventByNumber() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
