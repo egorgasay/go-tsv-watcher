@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 	"github.com/signintech/gopdf"
 	"go-tsv-watcher/internal/events"
@@ -26,11 +27,11 @@ func New(storage storage.Storage, dirOut string) *UseCase {
 }
 
 // Process the files in the directory
-func (u *UseCase) Process(refresh time.Duration, dir string) error {
+func (u *UseCase) Process(ctx context.Context, refresh time.Duration, dir string) error {
 	files := make(chan string, 100)
 
 	u.fileWatcher = watcher.New(refresh, dir, files)
-	err := u.storage.LoadFilenames(u.fileWatcher)
+	err := u.storage.LoadFilenames(ctx, u.fileWatcher)
 	if err != nil {
 		return err
 	}
@@ -52,7 +53,7 @@ func (u *UseCase) Process(refresh time.Duration, dir string) error {
 		}
 
 		errFill := gadgets.Fill()
-		errAdd := u.storage.AddFilename(filename, errFill)
+		errAdd := u.storage.AddFilename(ctx, filename, errFill)
 		if errAdd != nil {
 			log.Println("Failed to add filename:", errAdd)
 		}
@@ -64,7 +65,7 @@ func (u *UseCase) Process(refresh time.Duration, dir string) error {
 			gadgets.Print()
 		}
 
-		err = u.storage.SaveEvents(gadgets)
+		err = u.storage.SaveEvents(ctx, gadgets)
 		if err != nil {
 			log.Println("Failed to save devices:", err)
 		}
@@ -143,6 +144,6 @@ func (u *UseCase) process(group []events.Event, unitGUID string) error {
 	return nil
 }
 
-func (u *UseCase) GetEventByNumber(unitGUID string, number int) (events.Event, error) {
-	return u.storage.GetEventByNumber(unitGUID, number)
+func (u *UseCase) GetEventByNumber(ctx context.Context, unitGUID string, number int) (events.Event, error) {
+	return u.storage.GetEventByNumber(ctx, unitGUID, number)
 }

@@ -36,7 +36,7 @@ func (h Handler) PostEvent() http.HandlerFunc {
 		}
 		defer r.Body.Close()
 
-		event, err := h.logic.GetEventByNumber(eventRequest.UnitGUID, eventRequest.Page)
+		event, err := h.logic.GetEventByNumber(r.Context(), eventRequest.UnitGUID, eventRequest.Page)
 		if err != nil {
 			oplog := httplog.LogEntry(r.Context())
 			oplog.Error().Msg(err.Error())

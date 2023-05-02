@@ -1,6 +1,7 @@
 package sqlite_test
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"go-tsv-watcher/internal/events"
@@ -84,7 +85,7 @@ func TestAddFilename(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := st.AddFilename(tt.filename, tt.err)
+			err := st.AddFilename(context.Background(), tt.filename, tt.err)
 			if (err != nil) != tt.wantError {
 				t.Errorf("error adding filename: %v", err)
 			}
@@ -96,7 +97,7 @@ func TestAddFilename(t *testing.T) {
 
 		a := &addStub{}
 
-		err := st.LoadFilenames(a)
+		err := st.LoadFilenames(context.Background(), a)
 		if err != nil {
 			t.Fatalf("error loading filenames: %v", err)
 		}
@@ -148,7 +149,7 @@ func TestLoadFilenames(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := st.AddFilename(tt.filename, tt.err)
+			err := st.AddFilename(context.Background(), tt.filename, tt.err)
 			if (err != nil) != tt.wantError {
 				t.Errorf("error adding filename: %v", err)
 			}
@@ -156,7 +157,9 @@ func TestLoadFilenames(t *testing.T) {
 	}
 
 	a := &addStub{}
-	err = st.LoadFilenames(a)
+  
+	err = st.LoadFilenames(context.Background(), a)
+
 	if err != nil {
 		t.Fatalf("error loading filenames: %v", err)
 	}
@@ -241,7 +244,7 @@ func TestDB_SaveEvents(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := st.SaveEvents(tt.evs); (err != nil) != tt.wantErr {
+			if err := st.SaveEvents(context.Background(), tt.evs); (err != nil) != tt.wantErr {
 				t.Errorf("SaveEvents() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			for _, ev := range tt.evs.events {

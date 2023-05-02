@@ -13,29 +13,31 @@ import (
 )
 
 type Itisadb struct {
+	files  *itisadb.Index
 	client *itisadb.Client
 }
 
 var ErrEventNotFound = errors.New("event not found")
 
-func New(creds string) (*Itisadb, error) {
+func New(ctx context.Context, creds string) (*Itisadb, error) {
 	client, err := itisadb.New(creds)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %w", err)
 	}
 
+	files, err := client.Index(ctx, "files")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get files index: %w", err)
+	}
+
 	return &Itisadb{
 		client: client,
+		files:  files,
 	}, nil
 }
 
-func (i *Itisadb) LoadFilenames(adder service.Adder) error {
-	files, err := i.client.Index(context.Background(), "files")
-	if err != nil {
-		return fmt.Errorf("failed to get files index: %w", err)
-	}
-
-	filesMap, err := files.GetIndex(context.Background())
+func (i *Itisadb) LoadFilenames(ctx context.Context, adder service.Adder) error {
+	filesMap, err := i.files.GetIndex(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get index: %w", err)
 	}
@@ -47,10 +49,9 @@ func (i *Itisadb) LoadFilenames(adder service.Adder) error {
 	return nil
 }
 
-func (i *Itisadb) AddFilename(filename string, err error) error {
-	files, err := i.client.Index(context.Background(), "files")
-	if err != nil {
-		return err
+func (i *Itisadb) AddFilename(ctx context.Context, filename string, err error) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
 	}
 
 	var errMsg = ""
@@ -58,7 +59,7 @@ func (i *Itisadb) AddFilename(filename string, err error) error {
 		errMsg = err.Error()
 	}
 
-	err = files.Set(context.Background(), filename, errMsg, false)
+	err = i.files.Set(context.Background(), filename, errMsg, false)
 	if err != nil {
 		return err
 	}
@@ -66,21 +67,26 @@ func (i *Itisadb) AddFilename(filename string, err error) error {
 	return nil
 }
 
-func (i *Itisadb) SaveEvents(evs service.IEvents) error {
+func (i *Itisadb) SaveEvents(ctx context.Context, evs service.IEvents) error {
 	save := func(e events.Event) (stop bool) {
-		guidIndex, err := i.client.Index(context.Background(), e.UnitGUID)
+		if ctx.Err() != nil {
+			log.Println(ctx.Err())
+			return true
+		}
+
+		guidIndex, err := i.client.Index(ctx, e.UnitGUID)
 		if err != nil {
 			log.Printf("failed to create or get guid index: %v", err)
 			return true
 		}
 
-		num, err := guidIndex.Size(context.Background()) // TODO: GET CONTEXT
+		num, err := guidIndex.Size(ctx)
 		if err != nil {
 			log.Printf("failed to get size: %v", err)
 			return true
 		}
 
-		numIndex, err := guidIndex.Index(context.Background(), fmt.Sprintf("%d", num+1))
+		numIndex, err := guidIndex.Index(ctx, fmt.Sprintf("%d", num+1))
 		if err != nil {
 			log.Printf("failed to create or get index: %v", err)
 			return true
@@ -94,12 +100,12 @@ func (i *Itisadb) SaveEvents(evs service.IEvents) error {
 			value := ev.Field(j)
 			switch field.Type.Kind() {
 			case reflect.String:
-				err = numIndex.Set(context.Background(), field.Name, value.String(), false)
+				err = numIndex.Set(ctx, field.Name, value.String(), false)
 				if err != nil {
 					log.Printf("failed to save %s: %s", field.Name, err)
 				}
 			case reflect.Int:
-				err = numIndex.Set(context.Background(), field.Name, fmt.Sprintf("%d", value.Int()), false)
+				err = numIndex.Set(ctx, field.Name, fmt.Sprintf("%d", value.Int()), false)
 				if err != nil {
 					log.Printf("failed to save %s: %s", field.Name, err)
 				}
@@ -113,18 +119,22 @@ func (i *Itisadb) SaveEvents(evs service.IEvents) error {
 	return nil
 }
 
-func (i *Itisadb) GetEventByNumber(guid string, number int) (events.Event, error) {
-	guidIndex, err := i.client.Index(context.Background(), guid)
+func (i *Itisadb) GetEventByNumber(ctx context.Context, guid string, number int) (events.Event, error) {
+	if ctx.Err() != nil {
+		return events.Event{}, ctx.Err()
+	}
+
+	guidIndex, err := i.client.Index(ctx, guid)
 	if err != nil {
 		return events.Event{}, err
 	}
 
-	numIndex, err := guidIndex.Index(context.Background(), fmt.Sprintf("%d", number))
+	numIndex, err := guidIndex.Index(ctx, fmt.Sprintf("%d", number))
 	if err != nil {
 		return events.Event{}, err
 	}
 
-	numMap, err := numIndex.GetIndex(context.Background())
+	numMap, err := numIndex.GetIndex(ctx)
 	if err != nil {
 		return events.Event{}, err
 	}
