@@ -157,7 +157,7 @@ func TestLoadFilenames(t *testing.T) {
 	}
 
 	a := &addStub{}
-  
+
 	err = st.LoadFilenames(context.Background(), a)
 
 	if err != nil {
@@ -188,7 +188,7 @@ func (i ieventsStub) Fill() error {
 }
 
 func (i ieventsStub) Print() {
-	return
+
 }
 
 func (i ieventsStub) Iter(cb func(d events.Event) (stop bool)) {

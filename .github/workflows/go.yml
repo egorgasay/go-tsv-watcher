@@ -29,21 +29,39 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "windows-latest", "ubuntu-latest", "macOS-latest" ]
+        os: [ "ubuntu-latest" ]
         go: [ "1.19.x" ]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
         with:
-          fetch-depth: 1
-      - uses: WillAbides/setup-go-faster@v1.7.0
-        with:
-          go-version: ${{ matrix.go }}
-      - run: "go test ./..."
-      - run: "go vet ./..."
-      - uses: dominikh/staticcheck-action@v1.2.0
-        with:
-          version: "2022.1.1"
-          install-go: false
-          cache-key: ${{ matrix.go }}
+          go-version: 1.19
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run tests
+        run: go test -race -vet=off ./...
+
+      - name: Install staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+
+      - name: Run staticcheck
+        run: staticcheck ./...
+
+      - name: Install golint
+        run: go install golang.org/x/lint/golint@latest
+
+      - name: Run golint
+        run: golint ./...
+
 
