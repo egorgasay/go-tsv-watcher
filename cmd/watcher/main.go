@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/go-chi/chi/v5"
 	"go-tsv-watcher/config"
 	resthandler "go-tsv-watcher/internal/handler/rest"
@@ -21,10 +22,13 @@ func main() {
 		log.Fatal(err)
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	logic := usecase.New(st, "out") // TODO: use config
 
 	go func() {
-		err := logic.Process(cfg.Refresh, cfg.Directory)
+		err := logic.Process(ctx, cfg.Refresh, cfg.Directory)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -47,6 +51,7 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
+	cancel()
 
 	err = queries.Close()
 	if err != nil {

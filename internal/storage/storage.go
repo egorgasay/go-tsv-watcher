@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -13,11 +14,11 @@ import (
 )
 
 type Database interface {
-	LoadFilenames(putter service.Adder) error
-	AddFilename(filename string, err error) error
+	LoadFilenames(ctx context.Context, putter service.Adder) error
+	AddFilename(ctx context.Context, filename string, err error) error
 
-	SaveEvents(evs service.IEvents) error
-	GetEventByNumber(guid string, number int) (events.Event, error) // TODO: ADD CONTEXT
+	SaveEvents(ctx context.Context, evs service.IEvents) error
+	GetEventByNumber(ctx context.Context, guid string, number int) (events.Event, error) // TODO: ADD CONTEXT
 }
 
 type Storage Database
@@ -48,7 +49,7 @@ func New(cfg *Config) (Storage, error) {
 
 		st = sqlite.New(db, "file://migrations/sqlite3")
 	case "itisadb":
-		nosql, err := itisadb.New(cfg.DataSourceCred)
+		nosql, err := itisadb.New(context.Background(), cfg.DataSourceCred)
 		if err != nil {
 			return nil, fmt.Errorf("failed to connect to itisadb: %w", err)
 		}
