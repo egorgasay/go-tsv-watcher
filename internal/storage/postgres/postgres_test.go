@@ -30,16 +30,16 @@ func TestMain(m *testing.M) {
 		log.Fatalf("can't create db: %v", err)
 	}
 
-	db, err := sql.Open("sqlite3", ddb.ConnString)
+	db, err := sql.Open("postgres", ddb.ConnString)
 	if err != nil {
 		log.Fatalf("can't opening the db: %v", err)
 	}
-	defer cleanup(db)
 	defer db.Close()
+	defer cleanup(db)
 
 	st = postgres.New(db, "file://..//..//..//migrations/postgres")
 
-	err = queries.Prepare(db, "sqlite3")
+	err = queries.Prepare(db, "postgres")
 	if err != nil {
 		log.Fatalf("error preparing db: %v", err)
 	}
@@ -49,11 +49,7 @@ func TestMain(m *testing.M) {
 }
 
 func cleanup(db *sql.DB) {
-	_, err := db.Exec("DROP TABLE IF EXISTS events")
-	if err != nil {
-		log.Fatalf("error dropping table: %v", err)
-	}
-	_, err = db.Exec("DROP TABLE IF EXISTS files")
+	_, err := db.Exec("SELECT 'drop table if exists \"' || tablename || '\" cascade;' as pg_tbl_drop FROM pg_tables WHERE schemaname='public';")
 	if err != nil {
 		log.Fatalf("error dropping table: %v", err)
 	}
@@ -67,6 +63,11 @@ func (s *addStub) AddFile(filename string) {
 
 // TestAddFilename
 func TestAddFilename(t *testing.T) {
+	_, err := st.DB.Exec("DELETE FROM files")
+	if err != nil {
+		t.Fatalf("error deleting files: %v", err)
+	}
+
 	tests := []struct {
 		name      string
 		filename  string
@@ -125,6 +126,11 @@ func TestAddFilename(t *testing.T) {
 
 // TestLoadFilenames
 func TestLoadFilenames(t *testing.T) {
+	_, err := st.DB.Exec("DELETE FROM files")
+	if err != nil {
+		t.Fatalf("error deleting files: %v", err)
+	}
+
 	tests := []struct {
 		name      string
 		filename  string
@@ -165,7 +171,7 @@ func TestLoadFilenames(t *testing.T) {
 	}
 
 	a := &addStub{}
-	err := st.LoadFilenames(a)
+	err = st.LoadFilenames(a)
 	if err != nil {
 		t.Fatalf("error loading filenames: %v", err)
 	}
@@ -216,8 +222,8 @@ func TestDB_SaveEvents(t *testing.T) {
 			evs: &ieventsStub{
 				events: []events.Event{
 					{
-						ID:       "1",
 						UnitGUID: "1",
+						ID:       "3992bf73-76af-438b-9e75-085348da7f6a",
 					},
 				},
 			},
@@ -228,20 +234,20 @@ func TestDB_SaveEvents(t *testing.T) {
 			evs: &ieventsStub{
 				events: []events.Event{
 					{
-						ID:       "2",
 						UnitGUID: "2",
+						ID:       "268cb81b-c82f-4c0c-bf4a-cb6f5fb89ceb",
 					},
 					{
-						ID:       "3",
 						UnitGUID: "3",
+						ID:       "9132dbdf-5991-4a56-bc0c-5b3e3d6777bf",
 					},
 					{
-						ID:       "4",
 						UnitGUID: "4",
+						ID:       "fbc6af89-a89c-4fd7-8d08-c8d9e39adde2",
 					},
 					{
-						ID:       "5",
 						UnitGUID: "5",
+						ID:       "cb33fc64-94e0-4fa6-9a64-d267e56c1c91",
 					},
 				},
 			},

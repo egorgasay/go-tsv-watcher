@@ -12,9 +12,9 @@ import (
 )
 
 var st *sqlite.Sqlite3
+var dbName = "test.db"
 
 func TestMain(m *testing.M) {
-	dbName := "test.db"
 	db, err := sql.Open("sqlite3", dbName)
 	if err != nil {
 		log.Fatalf("can't opening the db: %v", err)
@@ -47,6 +47,11 @@ func (s *addStub) AddFile(filename string) {
 
 // TestAddFilename
 func TestAddFilename(t *testing.T) {
+	_, err := st.DB.Exec("DELETE FROM files")
+	if err != nil {
+		t.Fatalf("error deleting files: %v", err)
+	}
+
 	tests := []struct {
 		name      string
 		filename  string
@@ -105,6 +110,11 @@ func TestAddFilename(t *testing.T) {
 
 // TestLoadFilenames
 func TestLoadFilenames(t *testing.T) {
+	_, err := st.DB.Exec("DELETE FROM files")
+	if err != nil {
+		t.Fatalf("error deleting files: %v", err)
+	}
+
 	tests := []struct {
 		name      string
 		filename  string
@@ -113,28 +123,29 @@ func TestLoadFilenames(t *testing.T) {
 	}{
 		{
 			name:      "ok #1",
-			filename:  "test.tsv",
+			filename:  "TestLoadFilenames.tsv",
 			err:       nil,
 			wantError: false,
 		},
 		{
 			name:      "duplicate",
-			filename:  "test.tsv",
+			filename:  "TestLoadFilenames.tsv",
 			err:       nil,
 			wantError: true,
 		},
 		{
 			name:      "ok #2",
-			filename:  "test2.tsv",
+			filename:  "TestLoadFilenames2.tsv",
 			err:       errors.New("testError"),
 			wantError: false,
 		},
 		{
 			name:      "ok #3",
-			filename:  "test3.tsv",
+			filename:  "TestLoadFilenames4.tsv",
 			wantError: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := st.AddFilename(tt.filename, tt.err)
@@ -145,7 +156,7 @@ func TestLoadFilenames(t *testing.T) {
 	}
 
 	a := &addStub{}
-	err := st.LoadFilenames(a)
+	err = st.LoadFilenames(a)
 	if err != nil {
 		t.Fatalf("error loading filenames: %v", err)
 	}
@@ -197,7 +208,7 @@ func TestDB_SaveEvents(t *testing.T) {
 				events: []events.Event{
 					{
 						ID:       "1",
-						UnitGUID: "1",
+						UnitGUID: "3992bf73-76af-438b-9e75-085348da7f6a",
 					},
 				},
 			},
@@ -209,19 +220,19 @@ func TestDB_SaveEvents(t *testing.T) {
 				events: []events.Event{
 					{
 						ID:       "2",
-						UnitGUID: "2",
+						UnitGUID: "268cb81b-c82f-4c0c-bf4a-cb6f5fb89ceb",
 					},
 					{
 						ID:       "3",
-						UnitGUID: "3",
+						UnitGUID: "9132dbdf-5991-4a56-bc0c-5b3e3d6777bf",
 					},
 					{
 						ID:       "4",
-						UnitGUID: "4",
+						UnitGUID: "fbc6af89-a89c-4fd7-8d08-c8d9e39adde2",
 					},
 					{
 						ID:       "5",
-						UnitGUID: "5",
+						UnitGUID: "cb33fc64-94e0-4fa6-9a64-d267e56c1c91",
 					},
 				},
 			},
