@@ -92,7 +92,7 @@ func (u *UseCase) Process(ctx context.Context, refresh time.Duration, dir string
 	}
 }
 
-func (u *UseCase) savePDF(devs *events.Events) error {
+func (u *UseCase) savePDF(devs service.IEvents) error {
 	var devicesGroups = make(map[string][]events.Event, 20)
 	devs.Iter(func(d events.Event) (stop bool) {
 		devicesGroups[d.UnitGUID] = append(devicesGroups[d.UnitGUID], d)
@@ -114,7 +114,8 @@ func (u *UseCase) process(group []events.Event, unitGUID string) error {
 	defer pdf.Close()
 
 	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
-	err := pdf.AddTTFFont("LiberationSerif-Regular", "./resources/LiberationSerif-Regular.ttf")
+
+	err := pdf.AddTTFFont("LiberationSerif-Regular", "resources/LiberationSerif-Regular.ttf")
 	if err != nil {
 		u.logger.Warn(fmt.Sprintf("failed to add font: %v", err.Error()))
 		return fmt.Errorf("failed to add font: %w", err)

@@ -9,7 +9,9 @@ import (
 	"go-tsv-watcher/internal/storage/mocks"
 	"go-tsv-watcher/internal/storage/service"
 	"go-tsv-watcher/pkg/logger"
+	"os"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -96,5 +98,85 @@ func TestUseCase_GetEventByNumber(t *testing.T) {
 				t.Errorf("GetEventByNumber() got = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+type eventStub struct {
+	events []events.Event
+}
+
+func (i eventStub) Fill() error {
+	return nil
+}
+
+func (i eventStub) Print() {
+
+}
+
+func (i eventStub) Iter(cb func(d events.Event) (stop bool)) {
+	for _, d := range i.events {
+		if stop := cb(d); stop {
+			return
+		}
+	}
+}
+
+func TestUseCase_savePDF(t *testing.T) {
+	loggerInstance := httplog.NewLogger("watcher", httplog.Options{
+		Concise: true,
+	})
+
+	dir := "/tmp/testSavePDF"
+
+	err := os.Chdir("../../")
+	if err != nil {
+		return
+	}
+
+	err = os.Mkdir(dir, 0666)
+	if err != nil {
+		if !os.IsExist(err) {
+			t.Fatalf("create() error = %v", err)
+		}
+	}
+
+	uc := New(nil, dir, logger.New(loggerInstance))
+
+	es := eventStub{events: []events.Event{
+		{UnitGUID: "1"}, {UnitGUID: "2"}, {UnitGUID: "3"}, {UnitGUID: "4"}, {UnitGUID: "5"},
+	}}
+
+	err = uc.savePDF(es)
+	if err != nil {
+		t.Fatalf("savePDF() error = %v", err)
+	}
+
+	directory, err := os.Open(dir)
+	if err != nil {
+		t.Fatalf("Open() error = %v", err)
+	}
+
+	fis, err := directory.Readdir(-1)
+	if err != nil {
+		t.Fatalf("Readdir() error = %v", err)
+	}
+
+loop:
+	for _, f := range fis {
+		if f.IsDir() {
+			continue
+		}
+		for i, e := range es.events {
+			longFilename := f.Name()
+			shortFilename := strings.Trim(longFilename, ".pdf")
+			if shortFilename == e.UnitGUID {
+				es.events = append(es.events[:i], es.events[i+1:]...)
+				continue loop
+			}
+		}
+	}
+
+	if len(es.events) != 0 {
+		t.Fatalf("savePDF() missing files")
 	}
 }

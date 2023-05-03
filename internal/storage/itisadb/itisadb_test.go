@@ -15,10 +15,21 @@ import (
  	THAT IS WHY I HAVE TO SKIP IT
 */
 
+func isWorking(client *itisadb.Client) bool {
+	_, err := client.Index(context.Background(), "test")
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func TestItisadb_AddFilename(t *testing.T) {
 	client, err := itisadb.New(":800")
 	if err != nil {
 		t.Logf("Can't create client %v", err)
+	}
+
+	if !isWorking(client) {
 		t.Skip()
 	}
 
@@ -87,6 +98,10 @@ func TestItisadb_GetEventByNumber(t *testing.T) {
 	client, err := itisadb.New(":800")
 	if err != nil {
 		t.Logf("Can't create client %v", err)
+		t.Skip()
+	}
+
+	if !isWorking(client) {
 		t.Skip()
 	}
 
@@ -214,6 +229,10 @@ func TestItisadb_LoadFilenames(t *testing.T) {
 		t.Skip()
 	}
 
+	if !isWorking(client) {
+		t.Skip()
+	}
+
 	files, err := client.Index(context.Background(), "files")
 	if err != nil {
 		t.Fatal(err)
@@ -305,6 +324,10 @@ func TestItisadb_SaveEvents(t *testing.T) {
 	client, err := itisadb.New(":800")
 	if err != nil {
 		t.Logf("Can't create client %v", err)
+		t.Skip()
+	}
+
+	if !isWorking(client) {
 		t.Skip()
 	}
 
