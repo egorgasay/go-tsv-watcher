@@ -133,7 +133,7 @@ func TestUseCase_savePDF(t *testing.T) {
 		return
 	}
 
-	err = os.Mkdir(dir, 0666)
+	err = os.MkdirAll(dir, 0666)
 	if err != nil {
 		if !os.IsExist(err) {
 			t.Fatalf("create() error = %v", err)

@@ -58,7 +58,7 @@ func (u *UseCase) Process(ctx context.Context, refresh time.Duration, dir string
 		}
 	}()
 
-	for {
+	for ctx.Err() == nil {
 		fmt.Println("Waiting for new file...")
 		filename := <-files
 		fmt.Println("New file:", filename)
@@ -90,6 +90,8 @@ func (u *UseCase) Process(ctx context.Context, refresh time.Duration, dir string
 			u.logger.Warn(err.Error())
 		}
 	}
+	close(files)
+	return ctx.Err()
 }
 
 func (u *UseCase) savePDF(devs service.IEvents) error {

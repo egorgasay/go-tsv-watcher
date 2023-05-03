@@ -1,6 +1,7 @@
 package watcher
 
 import (
+	"fmt"
 	"github.com/dolthub/swiss"
 	"os"
 	"time"
@@ -36,12 +37,12 @@ func (w *Watcher) Run() error {
 	for range ticker.C {
 		dir, err := os.Open(w.dir)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to open directory: %s", err)
 		}
 
 		fis, err := dir.Readdir(-1)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to read directory: %s", err)
 		}
 
 		for _, fi := range fis {
