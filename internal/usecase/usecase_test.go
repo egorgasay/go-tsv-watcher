@@ -126,7 +126,7 @@ func TestUseCase_savePDF(t *testing.T) {
 		Concise: true,
 	})
 
-	dir := "/tmp/testSavePDF"
+	dir := "test_dir/testSavePDF"
 
 	err := os.Chdir("../../")
 	if err != nil {
@@ -178,5 +178,10 @@ loop:
 
 	if len(es.events) != 0 {
 		t.Fatalf("savePDF() missing files")
+	}
+
+	err = os.RemoveAll(dir)
+	if err != nil {
+		t.Fatalf("remove() error = %v", err)
 	}
 }
