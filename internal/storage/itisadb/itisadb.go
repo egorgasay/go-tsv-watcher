@@ -59,7 +59,7 @@ func (i *Itisadb) AddFilename(ctx context.Context, filename string, err error) e
 		errMsg = err.Error()
 	}
 
-	err = i.files.Set(context.Background(), filename, errMsg, false)
+	err = i.files.Set(context.Background(), filename, errMsg, true)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (i *Itisadb) GetEventByNumber(ctx context.Context, guid string, number int)
 		case reflect.Int:
 			num, err := strconv.Atoi(numMap[tField.Name])
 			if err != nil {
-				return events.Event{}, err
+				continue
 			}
 			field.SetInt(int64(num))
 		}
