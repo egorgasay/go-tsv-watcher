@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+// UseCase struct for the logic layer.
 type UseCase struct {
 	storage     storage.Storage
 	fileWatcher *watcher.Watcher
@@ -22,6 +23,7 @@ type UseCase struct {
 	logger      logger.ILogger
 }
 
+// ErrStorageIsUnavailable error occurs when is unavailable
 var ErrStorageIsUnavailable = errors.New("storage is unavailable")
 
 // IUseCase interface for mock testing.

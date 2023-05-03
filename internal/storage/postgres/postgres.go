@@ -14,6 +14,7 @@ import (
 	"go-tsv-watcher/internal/storage/sqllike"
 )
 
+// Postgres struct for the postgres db
 type Postgres struct {
 	sqllike.DB
 }

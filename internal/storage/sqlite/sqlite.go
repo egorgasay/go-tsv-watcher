@@ -16,6 +16,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
+// Sqlite3 struct for the sqlite3 database.
 type Sqlite3 struct {
 	sqllike.DB
 }
