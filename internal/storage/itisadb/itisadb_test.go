@@ -15,6 +15,7 @@ import (
  	THAT IS WHY I HAVE TO SKIP IT
 */
 
+// isWorking checks if itisadb is working
 func isWorking(client *itisadb.Client) bool {
 	_, err := client.Index(context.Background(), "test")
 	return err == nil

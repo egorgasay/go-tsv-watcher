@@ -6,10 +6,13 @@ import (
 	"go-tsv-watcher/internal/storage/sqllike"
 	"log"
 
+	// SQLite driver
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
+
+	// file driver
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 

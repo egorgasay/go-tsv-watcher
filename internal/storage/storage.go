@@ -13,6 +13,7 @@ import (
 	"go-tsv-watcher/internal/storage/sqlite"
 )
 
+// Database interface
 type Database interface {
 	LoadFilenames(ctx context.Context, putter service.Adder) error
 	AddFilename(ctx context.Context, filename string, err error) error
@@ -21,14 +22,18 @@ type Database interface {
 	GetEventByNumber(ctx context.Context, guid string, number int) (events.Event, error)
 }
 
+// Storage interface for storage
+//
 //go:generate mockgen -destination=mocks/mock_storage.go -package=mocks go-tsv-watcher/internal/storage Storage
 type Storage Database
 
+// Config for storage
 type Config struct {
 	Type           string
 	DataSourceCred string
 }
 
+// New storage
 func New(cfg *Config) (Storage, error) {
 	var st Storage
 	var err error

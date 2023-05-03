@@ -180,18 +180,22 @@ func TestLoadFilenames(t *testing.T) {
 	}
 }
 
+// ieventsStub is a stub for events.
 type ieventsStub struct {
 	events []events.Event
 }
 
+// Fill unused
 func (i ieventsStub) Fill() error {
 	return nil
 }
 
+// Print unused
 func (i ieventsStub) Print() {
 
 }
 
+// Iter iterates over all the events.
 func (i ieventsStub) Iter(cb func(d events.Event) (stop bool)) {
 	for _, d := range i.events {
 		if stop := cb(d); stop {

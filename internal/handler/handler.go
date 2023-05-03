@@ -11,20 +11,41 @@ import (
 	"net/http"
 )
 
+// Handler struct for handler
 type Handler struct {
 	logic usecase.IUseCase
 }
 
+// New Handler constructor
 func New(logic usecase.IUseCase) *Handler {
 	return &Handler{logic: logic}
 }
 
+// BindJSON godoc
+// @Summary Bind JSON
+// @Description Bind JSON
+// @Tags event
+// @Accept  json
+// @Produce  error
+// @Param event body schema.EventRequest
 func BindJSON(r *http.Request, obj any) error {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	return decoder.Decode(obj)
 }
 
+// PostEvent godoc
+// @Summary Post event
+// @Description Post event
+// @Tags event
+// @Accept  json
+// @Produce  json
+// @Param event body schema.EventRequest
+// @Success 202 {object} schema.EventResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Failure 404 {object} schema.ErrorResponse
+// @Failure 500 {object} schema.ErrorResponse
+// @Router /api/v1/event [post]
 func (h Handler) PostEvent() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

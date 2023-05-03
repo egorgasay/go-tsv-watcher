@@ -25,6 +25,7 @@ func New(refreshInterval time.Duration, dir string, files chan string) *Watcher 
 	}
 }
 
+// AddFile adds a file to the list of processed files
 func (w *Watcher) AddFile(filename string) {
 	w.processed.Put(filename, struct{}{})
 }

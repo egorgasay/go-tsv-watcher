@@ -11,11 +11,13 @@ import (
 	"strconv"
 )
 
+// Itisadb is a storage for events.
 type Itisadb struct {
 	files  *itisadb.Index
 	client *itisadb.Client
 }
 
+// New creates a new Itisadb.
 func New(ctx context.Context, creds string) (*Itisadb, error) {
 	client, err := itisadb.New(creds)
 	if err != nil {
@@ -33,6 +35,7 @@ func New(ctx context.Context, creds string) (*Itisadb, error) {
 	}, nil
 }
 
+// LoadFilenames loads parsed filenames from the database.
 func (i *Itisadb) LoadFilenames(ctx context.Context, adder service.Adder) error {
 	filesMap, err := i.files.GetIndex(ctx)
 	if err != nil {
@@ -46,6 +49,7 @@ func (i *Itisadb) LoadFilenames(ctx context.Context, adder service.Adder) error 
 	return nil
 }
 
+// AddFilename adds parsed filename to the database.
 func (i *Itisadb) AddFilename(ctx context.Context, filename string, err error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -64,6 +68,7 @@ func (i *Itisadb) AddFilename(ctx context.Context, filename string, err error) e
 	return nil
 }
 
+// SaveEvents saves events to the database.
 func (i *Itisadb) SaveEvents(ctx context.Context, evs service.IEvents) error {
 	save := func(e events.Event) (stop bool) {
 		if ctx.Err() != nil {
@@ -116,6 +121,7 @@ func (i *Itisadb) SaveEvents(ctx context.Context, evs service.IEvents) error {
 	return nil
 }
 
+// GetEventByNumber gets event by given number.
 func (i *Itisadb) GetEventByNumber(ctx context.Context, guid string, number int) (events.Event, error) {
 	if ctx.Err() != nil {
 		return events.Event{}, ctx.Err()

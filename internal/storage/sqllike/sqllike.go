@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-// DB is a abstract implementation of the storage.Database interface for sql like databases.
+// DB is an abstract implementation of the storage.Database interface for sql like databases.
 type DB struct {
 	*sql.DB
 }
