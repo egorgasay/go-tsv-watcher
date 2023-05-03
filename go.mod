@@ -3,24 +3,27 @@ module go-tsv-watcher
 go 1.19
 
 require (
+	github.com/docker/distribution v2.8.1+incompatible
 	github.com/dogenzaka/tsv v0.0.0-20150215104501-8e02e611b1fb
 	github.com/dolthub/swiss v0.1.0
 	github.com/egorgasay/bettererrors v0.0.3
 	github.com/egorgasay/dockerdb/v2 v2.0.2
-	github.com/egorgasay/itisadb-go-sdk v0.4.0
+	github.com/egorgasay/itisadb-go-sdk v0.5.0
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-chi/httplog v0.3.0
 	github.com/golang-migrate/migrate/v4 v4.15.2
+	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/pkg/errors v0.9.1
 	github.com/signintech/gopdf v0.16.1
+	github.com/stretchr/testify v1.8.1
 )
 
 require (
 	github.com/Microsoft/go-winio v0.6.0 // indirect
-	github.com/docker/distribution v2.8.1+incompatible // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/docker v23.0.0+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
@@ -37,6 +40,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/phpdave11/gofpdi v1.0.14-0.20211212211723-1f10f9844311 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	github.com/rs/zerolog v1.27.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
@@ -49,6 +53,7 @@ require (
 	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
 	google.golang.org/grpc v1.54.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/cc/v3 v3.32.4 // indirect
 	modernc.org/ccgo/v3 v3.9.2 // indirect
 	modernc.org/libc v1.9.5 // indirect

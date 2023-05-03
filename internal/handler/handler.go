@@ -2,18 +2,20 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	bettererror "github.com/egorgasay/bettererrors"
 	"github.com/go-chi/httplog"
 	"go-tsv-watcher/internal/schema"
+	"go-tsv-watcher/internal/storage/service"
 	"go-tsv-watcher/internal/usecase"
 	"net/http"
 )
 
 type Handler struct {
-	logic *usecase.UseCase
+	logic usecase.IUseCase
 }
 
-func New(logic *usecase.UseCase) *Handler {
+func New(logic usecase.IUseCase) *Handler {
 	return &Handler{logic: logic}
 }
 
@@ -30,7 +32,7 @@ func (h Handler) PostEvent() http.HandlerFunc {
 		var eventRequest schema.EventRequest
 		err := BindJSON(r, &eventRequest)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusBadRequest)
 			w.Write(bettererror.New(err).SetAppLayer(bettererror.Handler).JSONPretty())
 			return
 		}
@@ -38,6 +40,11 @@ func (h Handler) PostEvent() http.HandlerFunc {
 
 		event, err := h.logic.GetEventByNumber(r.Context(), eventRequest.UnitGUID, eventRequest.Page)
 		if err != nil {
+			if errors.Is(err, service.ErrEventNotFound) {
+				w.WriteHeader(http.StatusNotFound)
+				w.Write(bettererror.New(err).SetAppLayer(bettererror.Storage).JSONPretty())
+				return
+			}
 			oplog := httplog.LogEntry(r.Context())
 			oplog.Error().Msg(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)

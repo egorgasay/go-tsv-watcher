@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httplog"
 	"go-tsv-watcher/config"
-	resthandler "go-tsv-watcher/internal/handler/rest"
+	"go-tsv-watcher/internal/handler"
 	"go-tsv-watcher/internal/storage"
 	"go-tsv-watcher/internal/storage/queries"
 	"go-tsv-watcher/internal/usecase"
+	"go-tsv-watcher/pkg/logger"
 	"log"
 	"net/http"
 	"os"
@@ -26,10 +28,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	loggerInstance := httplog.NewLogger("watcher", httplog.Options{
+		Concise: true,
+	})
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	logic := usecase.New(st, cfg.DirectoryOut)
+	logic := usecase.New(st, cfg.DirectoryOut, logger.New(loggerInstance))
 
 	go func() {
 		err := logic.Process(ctx, cfg.Refresh, cfg.Directory)
@@ -38,7 +44,7 @@ func main() {
 		}
 	}()
 
-	h := resthandler.New(logic)
+	h := handler.New(logic)
 
 	router := chi.NewRouter()
 	router.Group(h.PublicRoutes)

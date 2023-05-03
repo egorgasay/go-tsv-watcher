@@ -2,7 +2,6 @@ package itisadb
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/egorgasay/itisadb-go-sdk"
 	"go-tsv-watcher/internal/events"
@@ -16,8 +15,6 @@ type Itisadb struct {
 	files  *itisadb.Index
 	client *itisadb.Client
 }
-
-var ErrEventNotFound = errors.New("event not found")
 
 func New(ctx context.Context, creds string) (*Itisadb, error) {
 	client, err := itisadb.New(creds)
@@ -140,7 +137,7 @@ func (i *Itisadb) GetEventByNumber(ctx context.Context, guid string, number int)
 	}
 
 	if len(numMap) == 0 {
-		return events.Event{}, ErrEventNotFound
+		return events.Event{}, service.ErrEventNotFound
 	}
 
 	var event events.Event

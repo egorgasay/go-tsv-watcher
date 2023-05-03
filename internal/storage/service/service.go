@@ -1,6 +1,9 @@
 package service
 
-import "go-tsv-watcher/internal/events"
+import (
+	"errors"
+	"go-tsv-watcher/internal/events"
+)
 
 type Adder interface {
 	AddFile(filename string)
@@ -11,3 +14,5 @@ type IEvents interface {
 	Print()
 	Iter(cb func(d events.Event) (stop bool))
 }
+
+var ErrEventNotFound = errors.New("event not found")

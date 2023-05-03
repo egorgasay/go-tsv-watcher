@@ -380,7 +380,10 @@ func TestItisadb_SaveEvents(t *testing.T) {
 				if get != tt.evs.events[j].ID {
 					t.Errorf("got = %v, want %v", get, tt.evs.events[j].ID)
 				}
+
+				guidIndex.Delete(ctx)
 			}
+
 		})
 	}
 

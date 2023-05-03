@@ -117,6 +117,9 @@ func (db *DB) GetEventByNumber(ctx context.Context, guid string, number int) (ev
 		&d.MessageID, &d.MessageText, &d.Context, &d.MessageClass, &d.Level, &d.Area, &d.Address, &d.Block, &d.Type,
 		&d.Bit, &d.InvertBit)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return events.Event{}, service.ErrEventNotFound
+		}
 		return events.Event{}, err
 	}
 

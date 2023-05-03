@@ -37,7 +37,7 @@ type Events struct {
 	parser  parser
 	file    *os.File
 
-	mu sync.Mutex
+	mu *sync.Mutex
 }
 
 func New(filename string) (*Events, error) {
@@ -51,6 +51,7 @@ func New(filename string) (*Events, error) {
 		file:    f,
 		parser:  nil,
 		events:  make([]Event, 0),
+		mu:      &sync.Mutex{},
 	}, nil
 }
 

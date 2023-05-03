@@ -18,9 +18,10 @@ type Database interface {
 	AddFilename(ctx context.Context, filename string, err error) error
 
 	SaveEvents(ctx context.Context, evs service.IEvents) error
-	GetEventByNumber(ctx context.Context, guid string, number int) (events.Event, error) // TODO: ADD CONTEXT
+	GetEventByNumber(ctx context.Context, guid string, number int) (events.Event, error)
 }
 
+//go:generate mockgen -destination=mocks/mock_storage.go -package=mocks go-tsv-watcher/internal/storage Storage
 type Storage Database
 
 type Config struct {

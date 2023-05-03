@@ -327,7 +327,7 @@ func TestDB_GetEventByNumber(t *testing.T) {
 			name: "not found",
 			args: args{
 				ctx:    context.Background(),
-				guid:   "3992bf73-76af-438b-9e75-085348da7f61",
+				guid:   "3992bf73-76af-438b-9e75-085348da",
 				number: 3,
 			},
 			wantErr: true,
