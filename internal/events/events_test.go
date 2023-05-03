@@ -11,8 +11,6 @@ func TestEvents_Fill(t *testing.T) {
 	type fields struct {
 		current *Event
 		events  []Event
-		parser  parser
-		file    *os.File
 		mu      *sync.Mutex
 	}
 	tests := []struct {

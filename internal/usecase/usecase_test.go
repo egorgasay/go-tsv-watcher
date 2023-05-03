@@ -15,8 +15,6 @@ import (
 	"testing"
 )
 
-type mockBehavior func(r *mocks.MockStorage)
-
 func TestUseCase_GetEventByNumber(t *testing.T) {
 	type args struct {
 		ctx      context.Context

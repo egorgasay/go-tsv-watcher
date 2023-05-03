@@ -17,10 +17,7 @@ import (
 
 func isWorking(client *itisadb.Client) bool {
 	_, err := client.Index(context.Background(), "test")
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func TestItisadb_AddFilename(t *testing.T) {
@@ -106,7 +103,6 @@ func TestItisadb_GetEventByNumber(t *testing.T) {
 	}
 
 	type fields struct {
-		files  *itisadb.Index
 		client *itisadb.Client
 	}
 	type args struct {
@@ -390,7 +386,7 @@ func TestItisadb_SaveEvents(t *testing.T) {
 					t.Fatalf("failed to create or get guid index: %v", err)
 				}
 
-				numIndex, err := guidIndex.Index(ctx, fmt.Sprintf("1"))
+				numIndex, err := guidIndex.Index(ctx, "1")
 				if err != nil {
 					t.Fatalf("failed to create or get index: %v", err)
 				}
