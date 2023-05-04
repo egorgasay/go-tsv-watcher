@@ -17,7 +17,7 @@ var st *sqlite.Sqlite3
 var dbName = "test.db"
 
 func TestMain(m *testing.M) {
-	db, err := sql.Open("sqlite3", dbName)
+	db, err := sql.Open("sqlite", dbName)
 	if err != nil {
 		log.Fatalf("can't opening the db: %v", err)
 	}

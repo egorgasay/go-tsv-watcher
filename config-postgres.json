@@ -1,0 +1,8 @@
+{
+  "https": ":80",
+  "directory": "test_dir",
+  "directory_out": "test_out",
+  "storage_type": "postgres",
+  "dsn": "host=postgres user=admin password=admin dbname=admin sslmode=disable",
+  "refresh_interval": "1s"
+}

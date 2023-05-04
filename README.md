@@ -17,7 +17,7 @@ The service supports the use of three databases. Supported: PostgreSQL, Sqlite, 
 ### CLI arguments
 
 ```bash
--config=-c=path/to/config.json
+-c=path/to/config.json
 ```
 
 ### Config
