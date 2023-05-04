@@ -2,24 +2,25 @@ package itisadb
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/egorgasay/itisadb-go-sdk"
 	"go-tsv-watcher/internal/events"
 	"go-tsv-watcher/internal/storage/service"
+	"go-tsv-watcher/pkg/logger"
 	"log"
 	"reflect"
 	"strconv"
 )
 
+// Itisadb is a storage for events.
 type Itisadb struct {
 	files  *itisadb.Index
 	client *itisadb.Client
+	logger logger.ILogger
 }
 
-var ErrEventNotFound = errors.New("event not found")
-
-func New(ctx context.Context, creds string) (*Itisadb, error) {
+// New creates a new Itisadb.
+func New(ctx context.Context, creds string, logger logger.ILogger) (*Itisadb, error) {
 	client, err := itisadb.New(creds)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %w", err)
@@ -33,9 +34,11 @@ func New(ctx context.Context, creds string) (*Itisadb, error) {
 	return &Itisadb{
 		client: client,
 		files:  files,
+		logger: logger,
 	}, nil
 }
 
+// LoadFilenames loads parsed filenames from the database.
 func (i *Itisadb) LoadFilenames(ctx context.Context, adder service.Adder) error {
 	filesMap, err := i.files.GetIndex(ctx)
 	if err != nil {
@@ -49,6 +52,7 @@ func (i *Itisadb) LoadFilenames(ctx context.Context, adder service.Adder) error 
 	return nil
 }
 
+// AddFilename adds parsed filename to the database.
 func (i *Itisadb) AddFilename(ctx context.Context, filename string, err error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -59,14 +63,15 @@ func (i *Itisadb) AddFilename(ctx context.Context, filename string, err error) e
 		errMsg = err.Error()
 	}
 
-	err = i.files.Set(context.Background(), filename, errMsg, false)
+	err = i.files.Set(context.Background(), filename, errMsg, true)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to set: %w", err)
 	}
 
 	return nil
 }
 
+// SaveEvents saves events to the database.
 func (i *Itisadb) SaveEvents(ctx context.Context, evs service.IEvents) error {
 	save := func(e events.Event) (stop bool) {
 		if ctx.Err() != nil {
@@ -76,19 +81,19 @@ func (i *Itisadb) SaveEvents(ctx context.Context, evs service.IEvents) error {
 
 		guidIndex, err := i.client.Index(ctx, e.UnitGUID)
 		if err != nil {
-			log.Printf("failed to create or get guid index: %v", err)
+			i.logger.Warn(fmt.Sprintf("failed to create or get guid index: %v", err))
 			return true
 		}
 
 		num, err := guidIndex.Size(ctx)
 		if err != nil {
-			log.Printf("failed to get size: %v", err)
+			i.logger.Warn(fmt.Sprintf("failed to get size: %v", err))
 			return true
 		}
 
 		numIndex, err := guidIndex.Index(ctx, fmt.Sprintf("%d", num+1))
 		if err != nil {
-			log.Printf("failed to create or get index: %v", err)
+			i.logger.Warn(fmt.Sprintf("failed to create or get index: %v", err))
 			return true
 		}
 
@@ -102,12 +107,12 @@ func (i *Itisadb) SaveEvents(ctx context.Context, evs service.IEvents) error {
 			case reflect.String:
 				err = numIndex.Set(ctx, field.Name, value.String(), false)
 				if err != nil {
-					log.Printf("failed to save %s: %s", field.Name, err)
+					i.logger.Warn(fmt.Sprintf("failed to save %s: %s", field.Name, err))
 				}
 			case reflect.Int:
 				err = numIndex.Set(ctx, field.Name, fmt.Sprintf("%d", value.Int()), false)
 				if err != nil {
-					log.Printf("failed to save %s: %s", field.Name, err)
+					i.logger.Warn(fmt.Sprintf("failed to save %s: %s", field.Name, err))
 				}
 			}
 		}
@@ -119,6 +124,7 @@ func (i *Itisadb) SaveEvents(ctx context.Context, evs service.IEvents) error {
 	return nil
 }
 
+// GetEventByNumber gets event by given number.
 func (i *Itisadb) GetEventByNumber(ctx context.Context, guid string, number int) (events.Event, error) {
 	if ctx.Err() != nil {
 		return events.Event{}, ctx.Err()
@@ -140,7 +146,7 @@ func (i *Itisadb) GetEventByNumber(ctx context.Context, guid string, number int)
 	}
 
 	if len(numMap) == 0 {
-		return events.Event{}, ErrEventNotFound
+		return events.Event{}, service.ErrEventNotFound
 	}
 
 	var event events.Event
@@ -158,7 +164,7 @@ func (i *Itisadb) GetEventByNumber(ctx context.Context, guid string, number int)
 		case reflect.Int:
 			num, err := strconv.Atoi(numMap[tField.Name])
 			if err != nil {
-				return events.Event{}, err
+				continue
 			}
 			field.SetInt(int64(num))
 		}

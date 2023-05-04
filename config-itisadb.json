@@ -1,6 +1,7 @@
 {
   "http": ":80",
   "directory": "test_dir",
+  "directory_out": "test_out",
   "storage_type": "itisadb",
   "dsn": "127.0.0.1:800",
   "refresh_interval": "1s"

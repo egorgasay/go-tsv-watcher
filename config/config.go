@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"go-tsv-watcher/internal/storage"
 	"io"
-	"log"
 	"os"
 	"time"
 )
@@ -17,6 +16,8 @@ type Flag struct {
 	ConfigFile *string `json:"-"`
 	// directory to watch
 	Directory string `json:"directory"`
+	// directory to write to
+	DirectoryOut string `json:"directory_out"`
 
 	// connection string for storage
 	DSN string `json:"dsn"`
@@ -37,8 +38,9 @@ type Config struct {
 	HTTP  string
 	HTTPS string
 
-	// directory to watch
-	Directory string
+	// directories
+	Directory    string
+	DirectoryOut string
 
 	// storage config
 	DBConfig *storage.Config
@@ -53,21 +55,30 @@ func init() {
 }
 
 // New returns a new Config struct.
-func New() *Config {
+func New() (*Config, error) {
 	flag.Parse()
 
 	if f.ConfigFile == nil {
-		log.Fatal("config file is required")
+		return nil, fmt.Errorf("config file is required")
 	}
 
 	err := Modify(*f.ConfigFile)
 	if err != nil {
-		log.Fatalf("can't modify config: %v", err)
+		return nil, fmt.Errorf("can't modify config: %v", err)
 	}
 
 	dur, err := time.ParseDuration(f.Refresh)
 	if err != nil {
-		log.Fatalf("can't parse refresh duration: %v", err)
+		return nil, fmt.Errorf("can't parse refresh duration: %v", err)
+	}
+
+	if f.DirectoryOut == "" {
+		return nil, fmt.Errorf("directory_out is required")
+	}
+
+	err = os.Mkdir(f.DirectoryOut, 0755)
+	if err != nil && !os.IsExist(err) {
+		return nil, fmt.Errorf("can't create directory_out: %v", err)
 	}
 
 	return &Config{
@@ -78,9 +89,10 @@ func New() *Config {
 			Type:           f.Storage,
 			DataSourceCred: f.DSN,
 		},
-		Directory: f.Directory,
-		Refresh:   dur,
-	}
+		DirectoryOut: f.DirectoryOut,
+		Directory:    f.Directory,
+		Refresh:      dur,
+	}, nil
 }
 
 // Modify modifies the config by the file provided.

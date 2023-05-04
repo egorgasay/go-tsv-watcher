@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  watcher:
+    image: golang:1.19-alpine
+    volumes:
+      - .:/go/src/go-with-compose
+    working_dir: /go/src/go-with-compose
+    command: go run cmd/watcher/main.go -c=config-postgres.json
+    depends_on:
+      - postgres
+    ports:
+      - "800:80"
+  postgres:
+      image: postgres:15
+      restart: always
+      environment:
+        POSTGRES_DB: ${POSTGRES_DB:-admin}
+        POSTGRES_USER: ${POSTGRES_DB:-admin}
+        POSTGRES_PASSWORD: ${POSTGRES_DB:-admin}

@@ -1,6 +1,7 @@
 package watcher
 
 import (
+	"fmt"
 	"github.com/dolthub/swiss"
 	"os"
 	"time"
@@ -24,6 +25,7 @@ func New(refreshInterval time.Duration, dir string, files chan string) *Watcher 
 	}
 }
 
+// AddFile adds a file to the list of processed files
 func (w *Watcher) AddFile(filename string) {
 	w.processed.Put(filename, struct{}{})
 }
@@ -33,35 +35,34 @@ func (w *Watcher) Run() error {
 	ticker := time.NewTicker(w.refreshInterval)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			dir, err := os.Open(w.dir)
-			if err != nil {
-				return err
-			}
-
-			fis, err := dir.Readdir(-1)
-			if err != nil {
-				return err
-			}
-
-			for _, fi := range fis {
-				if fi.IsDir() {
-					continue
-				}
-				if w.processed.Has(fi.Name()) {
-					continue
-				}
-
-				if len(fi.Name()) < 4 || fi.Name()[len(fi.Name())-4:] != ".tsv" {
-					continue
-				}
-
-				w.files <- fi.Name()
-				w.processed.Put(fi.Name(), struct{}{})
-			}
-			dir.Close()
+	for range ticker.C {
+		dir, err := os.Open(w.dir)
+		if err != nil {
+			return fmt.Errorf("failed to open directory: %s", err)
 		}
+
+		fis, err := dir.Readdir(-1)
+		if err != nil {
+			return fmt.Errorf("failed to read directory: %s", err)
+		}
+
+		for _, fi := range fis {
+			if fi.IsDir() {
+				continue
+			}
+			if w.processed.Has(fi.Name()) {
+				continue
+			}
+
+			if len(fi.Name()) < 4 || fi.Name()[len(fi.Name())-4:] != ".tsv" {
+				continue
+			}
+
+			w.files <- fi.Name()
+			w.processed.Put(fi.Name(), struct{}{})
+		}
+		dir.Close()
 	}
+
+	return nil
 }

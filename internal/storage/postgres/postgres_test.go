@@ -4,10 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/docker/distribution/uuid"
 	"github.com/egorgasay/dockerdb/v2"
+	"github.com/go-chi/httplog"
 	"go-tsv-watcher/internal/events"
 	"go-tsv-watcher/internal/storage/postgres"
 	"go-tsv-watcher/internal/storage/queries"
+	"go-tsv-watcher/pkg/logger"
 	"log"
 	"testing"
 )
@@ -42,7 +45,11 @@ func TestMain(m *testing.M) {
 	defer db.Close()
 	defer cleanup(db)
 
-	st = postgres.New(db, "file://..//..//..//migrations/postgres")
+	loggerInstance := httplog.NewLogger("watcher", httplog.Options{
+		Concise: true,
+	})
+
+	st = postgres.New(db, "file://..//..//..//migrations/postgres", logger.New(loggerInstance))
 
 	err = queries.Prepare(db, "postgres")
 	if err != nil {
@@ -176,7 +183,7 @@ func TestLoadFilenames(t *testing.T) {
 	}
 
 	a := &addStub{}
-  
+
 	err = st.LoadFilenames(context.Background(), a)
 
 	if err != nil {
@@ -198,18 +205,22 @@ func TestLoadFilenames(t *testing.T) {
 	}
 }
 
+// ieventsStub is a stub for events.
 type ieventsStub struct {
 	events []events.Event
 }
 
+// Fill unused
 func (i ieventsStub) Fill() error {
 	return nil
 }
 
+// Print unused
 func (i ieventsStub) Print() {
-	return
+
 }
 
+// Iter iterates over all the events.
 func (i ieventsStub) Iter(cb func(d events.Event) (stop bool)) {
 	for _, d := range i.events {
 		if stop := cb(d); stop {
@@ -274,6 +285,88 @@ func TestDB_SaveEvents(t *testing.T) {
 				if id != ev.ID {
 					t.Errorf("unexpected id: %s want %s", id, ev.ID)
 				}
+			}
+		})
+	}
+}
+
+func TestDB_GetEventByNumber(t *testing.T) {
+	type args struct {
+		ctx    context.Context
+		guid   string
+		number int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    events.Event
+		wantErr bool
+	}{
+		{
+			name: "ok #1",
+			args: args{
+				ctx:    context.Background(),
+				guid:   "3992bf73-76af-438b-9e75-085348da7f61",
+				number: 1,
+			},
+
+			want: events.Event{
+				UnitGUID:    "3992bf73-76af-438b-9e75-085348da7f61",
+				MessageText: "Test2",
+			},
+
+			wantErr: false,
+		},
+
+		{
+			name: "ok #2",
+			args: args{
+				ctx:    context.Background(),
+				guid:   "3992bf73-76af-438b-9e75-085348da7f61",
+				number: 2,
+			},
+
+			want: events.Event{
+				UnitGUID:    "3992bf73-76af-438b-9e75-085348da7f61",
+				MessageText: "Test2",
+			},
+
+			wantErr: false,
+		},
+		{
+			name: "not found",
+			args: args{
+				ctx:    context.Background(),
+				guid:   "3992bf73-76af-438b-9e75-085348da",
+				number: 3,
+			},
+			wantErr: true,
+		},
+	}
+
+	query := `
+INSERT INTO events (
+                    ID, UnitGUID, MessageText, Number, Level, Bit, 
+                    InvertBit, MQTT, InventoryID, MessageID, MessageClass, 
+                    Context, Area, Address, Block, Type) 
+VALUES ($1, $2, $3, 0, 0, 0, 0, '', '', '', '', '','', '', false, '')`
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := st.DB.Exec(query, uuid.Generate().String(), tt.want.UnitGUID, tt.want.MessageText)
+			if err != nil {
+				t.Fatalf("error adding mock event: %v", err)
+			}
+
+			got, err := st.GetEventByNumber(tt.args.ctx, tt.args.guid, tt.args.number)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetEventByNumber() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got.UnitGUID != tt.want.UnitGUID {
+				t.Errorf("GetEventByNumber() got = %v, want %v", got, tt.want)
+			} else if got.MessageText != tt.want.MessageText {
+				t.Errorf("GetEventByNumber() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

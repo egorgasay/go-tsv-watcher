@@ -11,24 +11,31 @@ import (
 	"go-tsv-watcher/internal/storage/queries"
 	"go-tsv-watcher/internal/storage/service"
 	"go-tsv-watcher/internal/storage/sqlite"
+	"go-tsv-watcher/pkg/logger"
 )
 
+// Database interface
 type Database interface {
 	LoadFilenames(ctx context.Context, putter service.Adder) error
 	AddFilename(ctx context.Context, filename string, err error) error
 
 	SaveEvents(ctx context.Context, evs service.IEvents) error
-	GetEventByNumber(ctx context.Context, guid string, number int) (events.Event, error) // TODO: ADD CONTEXT
+	GetEventByNumber(ctx context.Context, guid string, number int) (events.Event, error)
 }
 
+// Storage interface for storage
+//
+//go:generate mockgen -destination=mocks/mock_storage.go -package=mocks go-tsv-watcher/internal/storage Storage
 type Storage Database
 
+// Config for storage
 type Config struct {
 	Type           string
 	DataSourceCred string
 }
 
-func New(cfg *Config) (Storage, error) {
+// New storage
+func New(cfg *Config, logger logger.ILogger) (Storage, error) {
 	var st Storage
 	var err error
 	var db *sql.DB
@@ -40,16 +47,16 @@ func New(cfg *Config) (Storage, error) {
 			panic(err)
 		}
 
-		st = postgres.New(db, "file://migrations/sqlite3")
+		st = postgres.New(db, "file://migrations/sqlite3", logger)
 	case "sqlite3":
-		db, err = sql.Open("sqlite3", cfg.DataSourceCred)
+		db, err = sql.Open("sqlite", cfg.DataSourceCred)
 		if err != nil {
 			panic(err)
 		}
 
-		st = sqlite.New(db, "file://migrations/sqlite3")
+		st = sqlite.New(db, "file://migrations/sqlite3", logger)
 	case "itisadb":
-		nosql, err := itisadb.New(context.Background(), cfg.DataSourceCred)
+		nosql, err := itisadb.New(context.Background(), cfg.DataSourceCred, logger)
 		if err != nil {
 			return nil, fmt.Errorf("failed to connect to itisadb: %w", err)
 		}

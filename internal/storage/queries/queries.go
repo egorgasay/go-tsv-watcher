@@ -12,6 +12,9 @@ type Query string
 // Name number of query.
 type Name int
 
+// AddFilename query for  adding filename.
+// SaveEvent query for saving event.
+// GetEvent query for getting event.
 // Query names.
 const (
 	AddFilename = iota

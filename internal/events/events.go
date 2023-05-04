@@ -1,6 +1,7 @@
 package events
 
 import (
+	"fmt"
 	"github.com/dogenzaka/tsv"
 	"github.com/google/uuid"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"sync"
 )
 
+// Event is event struct for parsing
 type Event struct {
 	ID           string
 	Number       int    `tsv:"n"`
@@ -27,19 +29,23 @@ type Event struct {
 	InvertBit    int    `tsv:"invert_bit"`
 }
 
+// parser is interface for parsing
 type parser interface {
 	Next() (bool, error)
 }
 
+// Events is events struct
+// Contains []Event
 type Events struct {
 	current *Event
 	events  []Event
 	parser  parser
 	file    *os.File
 
-	mu sync.Mutex
+	mu *sync.Mutex
 }
 
+// New creates new events
 func New(filename string) (*Events, error) {
 	f, err := os.Open(filename)
 	if err != nil {
@@ -51,27 +57,32 @@ func New(filename string) (*Events, error) {
 		file:    f,
 		parser:  nil,
 		events:  make([]Event, 0),
+		mu:      &sync.Mutex{},
 	}, nil
 }
 
+// prepare prepares events
 func (es *Events) prepare() error {
 	var err error
 	es.parser, err = es.newParser()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create parser: %w", err)
 	}
 
 	return nil
 }
 
+// newParser creates new parser
 func (es *Events) newParser() (parser, error) {
 	return tsv.NewParser(es.file, es.current)
 }
 
-func (es *Events) closeDevices() error {
+// closeDevices closes events
+func (es *Events) closeEvents() error {
 	return es.file.Close()
 }
 
+// Fill fills events.
 func (es *Events) Fill() error {
 	es.mu.Lock()
 	defer es.mu.Unlock()
@@ -81,7 +92,7 @@ func (es *Events) Fill() error {
 		return err
 	}
 
-	defer es.closeDevices()
+	defer es.closeEvents()
 
 	for {
 		eof, err := es.parser.Next()
@@ -99,12 +110,14 @@ func (es *Events) Fill() error {
 	}
 }
 
+// Print prints events.
 func (es *Events) Print() {
 	for _, d := range es.events {
 		log.Println(d.Number)
 	}
 }
 
+// Iter iterates over events by giving function.
 func (es *Events) Iter(cb func(d Event) (stop bool)) {
 	es.mu.Lock()
 	defer es.mu.Unlock()

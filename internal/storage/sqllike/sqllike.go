@@ -7,12 +7,21 @@ import (
 	"go-tsv-watcher/internal/events"
 	"go-tsv-watcher/internal/storage/queries"
 	"go-tsv-watcher/internal/storage/service"
-	"log"
+	"go-tsv-watcher/pkg/logger"
 )
 
-// DB is a abstract implementation of the storage.Database interface for sql like databases.
+// DB is an abstract implementation of the storage.Database interface for sql like databases.
 type DB struct {
 	*sql.DB
+	logger logger.ILogger
+}
+
+// New creates a new DB instance.
+func New(db *sql.DB, logger logger.ILogger) *DB {
+	return &DB{
+		DB:     db,
+		logger: logger,
+	}
 }
 
 // Close closes the database connection.
@@ -82,14 +91,14 @@ func (db *DB) SaveEvents(ctx context.Context, evs service.IEvents) error {
 
 	save := func(d events.Event) (stop bool) {
 		if ctx.Err() != nil {
-			log.Println(ctx.Err()) // TODO: replace with logger
+			db.logger.Warn(ctx.Err().Error())
 			return true
 		}
 		_, err = statement.Exec(d.ID, d.Number, d.MQTT, d.InventoryID, d.UnitGUID,
 			d.MessageID, d.MessageText, d.Context, d.MessageClass,
 			d.Level, d.Area, d.Address, d.Block, d.Type, d.Bit, d.InvertBit)
 		if err != nil {
-			log.Println(err) // TODO: replace with logger
+			db.logger.Warn(err.Error())
 			return true
 		}
 		return false
@@ -117,6 +126,9 @@ func (db *DB) GetEventByNumber(ctx context.Context, guid string, number int) (ev
 		&d.MessageID, &d.MessageText, &d.Context, &d.MessageClass, &d.Level, &d.Area, &d.Address, &d.Block, &d.Type,
 		&d.Bit, &d.InvertBit)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return events.Event{}, service.ErrEventNotFound
+		}
 		return events.Event{}, err
 	}
 

@@ -1,6 +1,7 @@
 {
-  "http": ":80",
+  "https": ":80",
   "directory": "test_dir",
+  "directory_out": "test_out",
   "storage_type": "sqlite3",
   "dsn": "dev.db",
   "refresh_interval": "1s"
