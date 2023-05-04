@@ -48,7 +48,7 @@ func New(cfg *Config) (Storage, error) {
 
 		st = postgres.New(db, "file://migrations/sqlite3")
 	case "sqlite3":
-		db, err = sql.Open("sqlite3", cfg.DataSourceCred)
+		db, err = sql.Open("sqlite", cfg.DataSourceCred)
 		if err != nil {
 			panic(err)
 		}

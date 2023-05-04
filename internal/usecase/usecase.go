@@ -168,6 +168,10 @@ func (u *UseCase) process(group []events.Event, unitGUID string) error {
 
 // GetEventByNumber gets an event by number
 func (u *UseCase) GetEventByNumber(ctx context.Context, unitGUID string, number int) (events.Event, error) {
+	if number <= 0 {
+		return events.Event{}, service.ErrEventNotFound
+	}
+
 	ev, err := u.storage.GetEventByNumber(ctx, unitGUID, number)
 	if err != nil {
 		if errors.Is(err, service.ErrEventNotFound) {

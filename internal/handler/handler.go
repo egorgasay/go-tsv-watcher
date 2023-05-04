@@ -42,9 +42,9 @@ func BindJSON(r *http.Request, obj any) error {
 // @Produce  json
 // @Param event body schema.EventRequest
 // @Success 202 {object} schema.EventResponse
-// @Failure 400 {object} schema.ErrorResponse
-// @Failure 404 {object} schema.ErrorResponse
-// @Failure 500 {object} schema.ErrorResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
 // @Router /api/v1/event [post]
 func (h Handler) PostEvent() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
