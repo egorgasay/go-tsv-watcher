@@ -8,7 +8,7 @@
 
 ### Point
 
-The service scans a given directory at a given interval and parses new TSV files, saving their value to a PDF file in a separate directory and a database selected by the user.
+The service scans a given directory at a given interval and parses new TSV files, and also saves them to pdf files by device name in a separate directory and database selected by the user.
 
 ### Database
 
@@ -54,7 +54,7 @@ Refresh string `json:"refresh_interval"`
 
 ### Request
 
-You can get an event via HTTP(-S) request to your service.
+You can receive an event via an HTTP(-S) request to your service.
 
 
 ### Request example
@@ -64,5 +64,27 @@ Content-Type: application/json
 {
     "unit_guid": "01749246-95f6-57db-b7c3-2ae0e8be6715",
     "page": 1
+}
+```
+
+### Response example
+```json
+{
+    "ID": "14d013b1-3de3-4dda-8ee6-42474a53e56f",
+    "Number": 1,
+    "MQTT": "",
+    "InventoryID": "G-044322",
+    "UnitGUID": "01749246-95f6-57db-b7c3-2ae0e8be6715",
+    "MessageID": "cold7_Defrost_status",
+    "MessageText": "Разморозка",
+    "Context": "",
+    "MessageClass": "waiting",
+    "Level": 100,
+    "Area": "LOCAL",
+    "Address": "cold7_status.Defrost_status",
+    "Block": false,
+    "Type": "",
+    "Bit": 0,
+    "InvertBit": 0
 }
 ```
