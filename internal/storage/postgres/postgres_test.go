@@ -6,9 +6,11 @@ import (
 	"errors"
 	"github.com/docker/distribution/uuid"
 	"github.com/egorgasay/dockerdb/v2"
+	"github.com/go-chi/httplog"
 	"go-tsv-watcher/internal/events"
 	"go-tsv-watcher/internal/storage/postgres"
 	"go-tsv-watcher/internal/storage/queries"
+	"go-tsv-watcher/pkg/logger"
 	"log"
 	"testing"
 )
@@ -43,7 +45,11 @@ func TestMain(m *testing.M) {
 	defer db.Close()
 	defer cleanup(db)
 
-	st = postgres.New(db, "file://..//..//..//migrations/postgres")
+	loggerInstance := httplog.NewLogger("watcher", httplog.Options{
+		Concise: true,
+	})
+
+	st = postgres.New(db, "file://..//..//..//migrations/postgres", logger.New(loggerInstance))
 
 	err = queries.Prepare(db, "postgres")
 	if err != nil {

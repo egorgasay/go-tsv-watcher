@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/docker/distribution/uuid"
+	"github.com/go-chi/httplog"
 	"go-tsv-watcher/internal/events"
 	"go-tsv-watcher/internal/storage/queries"
 	"go-tsv-watcher/internal/storage/sqlite"
+	"go-tsv-watcher/pkg/logger"
 	"log"
 	"os"
 	"testing"
@@ -24,7 +26,11 @@ func TestMain(m *testing.M) {
 	defer cleanup(dbName)
 	defer db.Close()
 
-	st = sqlite.New(db, "file://..//..//..//migrations/sqlite3")
+	loggerInstance := httplog.NewLogger("watcher", httplog.Options{
+		Concise: true,
+	})
+
+	st = sqlite.New(db, "file://..//..//..//migrations/sqlite3", logger.New(loggerInstance))
 
 	err = queries.Prepare(db, "sqlite3")
 	if err != nil {

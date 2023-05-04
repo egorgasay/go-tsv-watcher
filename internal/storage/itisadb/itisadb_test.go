@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/egorgasay/itisadb-go-sdk"
+	"github.com/go-chi/httplog"
 	"github.com/pkg/errors"
 	"go-tsv-watcher/internal/events"
+	"go-tsv-watcher/pkg/logger"
 	"reflect"
 	"testing"
 )
@@ -170,10 +172,16 @@ func TestItisadb_GetEventByNumber(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
+	loggerInstance := httplog.NewLogger("watcher", httplog.Options{
+		Concise: true,
+	})
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := &Itisadb{
 				client: tt.fields.client,
+				logger: logger.New(loggerInstance),
 			}
 
 			g, err := i.client.Index(context.Background(), tt.toSave.UnitGUID)
