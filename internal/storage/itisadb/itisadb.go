@@ -6,6 +6,7 @@ import (
 	"github.com/egorgasay/itisadb-go-sdk"
 	"go-tsv-watcher/internal/events"
 	"go-tsv-watcher/internal/storage/service"
+	"go-tsv-watcher/pkg/logger"
 	"log"
 	"reflect"
 	"strconv"
@@ -15,10 +16,11 @@ import (
 type Itisadb struct {
 	files  *itisadb.Index
 	client *itisadb.Client
+	logger logger.ILogger
 }
 
 // New creates a new Itisadb.
-func New(ctx context.Context, creds string) (*Itisadb, error) {
+func New(ctx context.Context, creds string, logger logger.ILogger) (*Itisadb, error) {
 	client, err := itisadb.New(creds)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %w", err)
@@ -32,6 +34,7 @@ func New(ctx context.Context, creds string) (*Itisadb, error) {
 	return &Itisadb{
 		client: client,
 		files:  files,
+		logger: logger,
 	}, nil
 }
 
@@ -62,7 +65,7 @@ func (i *Itisadb) AddFilename(ctx context.Context, filename string, err error) e
 
 	err = i.files.Set(context.Background(), filename, errMsg, true)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to set: %w", err)
 	}
 
 	return nil
@@ -78,19 +81,19 @@ func (i *Itisadb) SaveEvents(ctx context.Context, evs service.IEvents) error {
 
 		guidIndex, err := i.client.Index(ctx, e.UnitGUID)
 		if err != nil {
-			log.Printf("failed to create or get guid index: %v", err)
+			i.logger.Warn(fmt.Sprintf("failed to create or get guid index: %v", err))
 			return true
 		}
 
 		num, err := guidIndex.Size(ctx)
 		if err != nil {
-			log.Printf("failed to get size: %v", err)
+			i.logger.Warn(fmt.Sprintf("failed to get size: %v", err))
 			return true
 		}
 
 		numIndex, err := guidIndex.Index(ctx, fmt.Sprintf("%d", num+1))
 		if err != nil {
-			log.Printf("failed to create or get index: %v", err)
+			i.logger.Warn(fmt.Sprintf("failed to create or get index: %v", err))
 			return true
 		}
 
@@ -104,12 +107,12 @@ func (i *Itisadb) SaveEvents(ctx context.Context, evs service.IEvents) error {
 			case reflect.String:
 				err = numIndex.Set(ctx, field.Name, value.String(), false)
 				if err != nil {
-					log.Printf("failed to save %s: %s", field.Name, err)
+					i.logger.Warn(fmt.Sprintf("failed to save %s: %s", field.Name, err))
 				}
 			case reflect.Int:
 				err = numIndex.Set(ctx, field.Name, fmt.Sprintf("%d", value.Int()), false)
 				if err != nil {
-					log.Printf("failed to save %s: %s", field.Name, err)
+					i.logger.Warn(fmt.Sprintf("failed to save %s: %s", field.Name, err))
 				}
 			}
 		}

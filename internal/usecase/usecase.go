@@ -10,7 +10,6 @@ import (
 	"go-tsv-watcher/internal/storage/service"
 	"go-tsv-watcher/internal/watcher"
 	"go-tsv-watcher/pkg/logger"
-	"log"
 	"reflect"
 	"time"
 )
@@ -84,7 +83,7 @@ func (u *UseCase) Process(ctx context.Context, refresh time.Duration, dir string
 
 		err = u.storage.SaveEvents(ctx, gadgets)
 		if err != nil {
-			log.Println("Failed to save devices:", err)
+			u.logger.Warn(fmt.Sprintf("Failed to save devices: %v", err))
 		}
 
 		err = u.savePDF(gadgets)

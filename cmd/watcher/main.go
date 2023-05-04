@@ -31,14 +31,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	st, err := storage.New(cfg.DBConfig)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	loggerInstance := httplog.NewLogger("watcher", httplog.Options{
 		Concise: true,
 	})
+
+	st, err := storage.New(cfg.DBConfig, logger.New(loggerInstance))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -121,11 +121,11 @@ func main() {
 			caFile.Close()
 
 			http.ListenAndServeTLS(cfg.HTTPS, "ca.crt", "ca.key", router)
-		}
-
-		log.Println("HTTP server started on ", cfg.HTTP)
-		if err := http.ListenAndServe(cfg.HTTP, router); err != nil {
-			log.Fatal(err)
+		} else {
+			log.Println("HTTP server started on ", cfg.HTTP)
+			if err := http.ListenAndServe(cfg.HTTP, router); err != nil {
+				log.Fatal(err)
+			}
 		}
 	}()
 

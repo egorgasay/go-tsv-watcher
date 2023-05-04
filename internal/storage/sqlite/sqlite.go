@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/pkg/errors"
 	"go-tsv-watcher/internal/storage/sqllike"
+	"go-tsv-watcher/pkg/logger"
 	"log"
 
 	// SQLite driver
@@ -22,7 +23,7 @@ type Sqlite3 struct {
 }
 
 // New Sqlite3 constructor.
-func New(db *sql.DB, path string) *Sqlite3 {
+func New(db *sql.DB, path string, logger logger.ILogger) *Sqlite3 {
 	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
 	if err != nil {
 		log.Fatal(err)
@@ -42,5 +43,7 @@ func New(db *sql.DB, path string) *Sqlite3 {
 		log.Fatal(err)
 	}
 
-	return &Sqlite3{DB: sqllike.DB{DB: db}}
+	bdb := sqllike.New(db, logger)
+
+	return &Sqlite3{DB: *bdb}
 }
