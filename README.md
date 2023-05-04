@@ -88,3 +88,9 @@ Content-Type: application/json
     "InvertBit": 0
 }
 ```
+
+### Quick Run
+The default 'config.json' file will be used. Make sure you have it.
+```bash
+docker-compose up
+```
